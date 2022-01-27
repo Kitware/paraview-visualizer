@@ -1,0 +1,35 @@
+{
+  "name": "vue-pv_visualizer",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "core-js": "^3.6.5",
+    "vue": "^2.6.11"
+  },
+  "scripts": {
+    "serve:CustomWidget": "vue-cli-service serve src/tests/CustomWidget/main.js",
+    "build": "vue-cli-service build --target lib --name pv_visualizer --filename vue-pv_visualizer src/use.js",
+    "lint": "vue-cli-service lint"
+  },
+  "devDependencies": {
+    "@mdi/font": "^6.3.95",
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "@vue/eslint-config-prettier": "^6.0.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-prettier": "^3.1.3",
+    "eslint-plugin-vue": "^6.2.2",
+    "prettier": "^1.19.1",
+    "typeface-roboto": "^1.1.13",
+    "vue-template-compiler": "^2.6.11",
+    "vuetify": "^2.5.10"
+  },
+  "files": [
+    "dist/*",
+    "src/*",
+    "*.json",
+    "*.js"
+  ]
+}
