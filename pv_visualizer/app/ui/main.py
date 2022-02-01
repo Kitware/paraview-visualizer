@@ -51,7 +51,7 @@ layout.logo.click = None
 layout.title.set_text("Visualizer")
 with layout.toolbar as tb:
     tb.dense = True
-    tb.clipped_left = True
+    tb.clipped_right = True
     vuetify.VSpacer()
     vuetify.VTextField(
         v_show=("!!active_controls",),
@@ -65,6 +65,8 @@ with layout.toolbar as tb:
         **COMPACT,
     )
     vuetify.VSpacer()
+    tb.add_child("{{ viewMode }}")
+    vuetify.VSpacer()
     with vuetify.VBtnToggle(v_model=("active_controls", "files"), **COMPACT, outlined=True, rounded=True):
         for item in CONTROLS:
             with vuetify.VBtn(value=item.NAME, **COMPACT):
@@ -74,6 +76,7 @@ with layout.toolbar as tb:
 # Drawer
 # -----------------------------------------------------------------------------
 with layout.drawer as dr:
+    dr.right = True
     # dr.expand_on_hover = True
     for item in CONTROLS:
         item.create_panel(dr)
@@ -91,7 +94,9 @@ with layout.content:
             namespace="view",
             style="width: 100%; height: 100%;"
         )
+        ctrl.view_replace = html_view.replace_view
         ctrl.view_update = html_view.update
+        ctrl.view_reset_camera = html_view.reset_camera
 
 # -----------------------------------------------------------------------------
 # Footer
