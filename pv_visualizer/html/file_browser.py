@@ -4,14 +4,15 @@ import re
 from trame import state
 from trame.html.widgets import ListBrowser
 
-class ParaViewPathResolver():
+
+class ParaViewPathResolver:
     def __init__(
         self,
         basePath,
         name,
         excludeRegex=r"^\.|~$|^\$",
         groupRegex=r"[0-9]+\.",
-        **kwargs
+        **kwargs,
     ):
         """
         Configure the way the WebFile browser will expose the server content.
@@ -24,7 +25,7 @@ class ParaViewPathResolver():
         """
         from paraview import simple
 
-        self.multiRoot = False # FIXME
+        self.multiRoot = False  # FIXME
         self.baseDirectory = basePath
 
         self.rootName = name
@@ -169,83 +170,99 @@ class AbstractFileBrowser(ListBrowser):
 
     def _update_listing(self):
         path_tokens = self._state[self._key_path]
-        base_path = '/'.join(path_tokens) if len(path_tokens) > 1 else '.'
+        base_path = "/".join(path_tokens) if len(path_tokens) > 1 else "."
         directory_meta = self._resolver.list_directory(base_path)
         listing = []
 
         # add directories
-        directories = directory_meta.get('dirs', [])
+        directories = directory_meta.get("dirs", [])
         for directory in directories:
-            listing.append({
-                "text": directory,
-                "value": directory,
-                "type": "Directory",
-                "prependIcon": "mdi-folder",
-                "appendIcon": "mdi-chevron-right",
-            })
+            listing.append(
+                {
+                    "text": directory,
+                    "value": directory,
+                    "type": "Directory",
+                    "prependIcon": "mdi-folder",
+                    "appendIcon": "mdi-chevron-right",
+                }
+            )
 
         # add groups
-        groups = directory_meta.get('groups', [])
+        groups = directory_meta.get("groups", [])
         for group in groups:
-            listing.append({
-                "text": group.get('label'),
-                "value": group.get('files'),
-                "type": "Group",
-                "prependIcon": "mdi-file-document-multiple-outline",
-            })
+            listing.append(
+                {
+                    "text": group.get("label"),
+                    "value": group.get("files"),
+                    "type": "Group",
+                    "prependIcon": "mdi-file-document-multiple-outline",
+                }
+            )
 
         # add files
-        files = directory_meta.get('files', [])
+        files = directory_meta.get("files", [])
         for file in files:
-            listing.append({
-                "text": file.get('label'),
-                "value": file.get('label'),
-                "type": "File",
-                "prependIcon": "mdi-file-document-outline",
-            })
+            listing.append(
+                {
+                    "text": file.get("label"),
+                    "value": file.get("label"),
+                    "type": "File",
+                    "prependIcon": "mdi-file-document-outline",
+                }
+            )
 
         self._state[self._key_listing] = listing
 
-
     def _update_path(self, type, value):
-        if type == 'Directory':
+        if type == "Directory":
             current_path = self._state[self._key_path]
             new_path = []
             new_path.extend(current_path)
             new_path.append(value)
             self._state[self._key_path] = new_path
             self._update_listing()
-        elif type == 'path':
-            new_path = value.split('/')
+        elif type == "path":
+            new_path = value.split("/")
             self._state[self._key_path] = new_path
             self._update_listing()
-        elif type == 'Group':
+        elif type == "Group":
             path_with_root = list(self._state[self._key_path])
-            path_with_root.pop(0) # remove Home/
-            current_path = '/'.join(path_with_root)
+            path_with_root.pop(0)  # remove Home/
+            current_path = "/".join(path_with_root)
             files_to_load = []
             for file in value:
-                files_to_load.append(f'{current_path}/{file}')
+                files_to_load.append(f"{current_path}/{file}")
             if self._on_load_file:
                 self._on_load_file(files_to_load)
-        elif type == 'File':
+        elif type == "File":
             path_with_root = list(self._state[self._key_path])
-            path_with_root.pop(0) # remove Home/
+            path_with_root.pop(0)  # remove Home/
             if len(path_with_root):
-                current_path = '/'.join(path_with_root)
-                file_to_load = f'{current_path}/{value}'
+                current_path = "/".join(path_with_root)
+                file_to_load = f"{current_path}/{value}"
             else:
                 file_to_load = value
 
             if self._on_load_file:
                 self._on_load_file(file_to_load)
         else:
-            print(f'need to handle {type}: {value}')
+            print(f"need to handle {type}: {value}")
+
 
 class ParaViewFileBrowser(AbstractFileBrowser):
-    def __init__(self, base_path, root_name="Home", on_load_file=None, exclude_regex=r"^\.|~$|^\$",
-        group_regex=r"[0-9]+\.", namespace="file_browser", **kwargs):
-        self._pv_resolver = ParaViewPathResolver(base_path, root_name, exclude_regex, group_regex)
+    def __init__(
+        self,
+        base_path,
+        root_name="Home",
+        on_load_file=None,
+        exclude_regex=r"^\.|~$|^\$",
+        group_regex=r"[0-9]+\.",
+        namespace="file_browser",
+        **kwargs,
+    ):
+        self._pv_resolver = ParaViewPathResolver(
+            base_path, root_name, exclude_regex, group_regex
+        )
         self._on_load_file = on_load_file
         super().__init__(self._pv_resolver, self._on_load_file, namespace, **kwargs)
 

@@ -21,27 +21,32 @@ NAME = "files"
 ICON = "mdi-file-document-outline"
 ICON_STYLE = {}
 
+
 def create_panel(container):
     with container:
         ParaViewFileBrowser(
             BASE_PATH,
             on_load_file=ctrl.on_load_file,
+            query=("search", ""),
             v_if=(f"active_controls == '{NAME}'",),
         )
+
 
 # -----------------------------------------------------------------------------
 # File handling functions
 # -----------------------------------------------------------------------------
 
+
 def add_prefix(file_path):
     return str(Path(os.path.join(BASE_PATH, file_path)).absolute())
+
 
 def load_file(files):
     if isinstance(files, list):
         # time serie
         files_to_load = map(add_prefix, files)
         reader = simple.OpenDataFile(files_to_load)
-        simple.Show(reader) # Should be defered
+        simple.Show(reader)  # Should be defered
     elif files.endswith(".pvsm"):
         # state file
         v1 = simple.Render()
@@ -54,11 +59,13 @@ def load_file(files):
         # data file
         data_to_load = add_prefix(files)
         reader = simple.OpenDataFile(data_to_load)
-        simple.Show(reader) # Should be defered
+        simple.Show(reader)  # Should be defered
 
-    # Switch to pipeline
+    # Update state
     state.active_controls = pipeline_name
+    ctrl.pipeline_update()
     ctrl.view_update(reset_camera=True)
+
 
 # -----------------------------------------------------------------------------
 # Update controller

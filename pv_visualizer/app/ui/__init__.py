@@ -7,6 +7,7 @@ __all__ = [
 
 layout = main.layout
 
+
 def on_reload(reload_modules):
     """Method called when the module is reloaded
 

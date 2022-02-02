@@ -8,12 +8,15 @@ from paraview import simple
 # Methods
 # ---------------------------------------------------------
 
+
 def initialize():
     pass
+
 
 # ---------------------------------------------------------
 # Listeners
 # ---------------------------------------------------------
+
 
 @state.change("my_title")
 def title_change(my_title, **kwargs):

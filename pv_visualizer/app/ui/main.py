@@ -1,6 +1,7 @@
 from trame import controller as ctrl
 from trame.layouts import SinglePageWithDrawer
 from trame.html import vuetify, paraview
+
 # from pv_visualizer import html as my_widgets
 from pv_visualizer.app import assets
 from pv_visualizer.app.ui import pipeline, files, algorithms, settings, state_change
@@ -27,8 +28,10 @@ CONTROLS = [
 # Dynamic reloading
 # -----------------------------------------------------------------------------
 
+
 def on_reload(reload_modules):
     reload_modules(*CONTROLS, state_change)
+
 
 # -----------------------------------------------------------------------------
 # Layout
@@ -55,7 +58,7 @@ with layout.toolbar as tb:
     vuetify.VSpacer()
     vuetify.VTextField(
         v_show=("!!active_controls",),
-        v_model=("search",""),
+        v_model=("search", ""),
         clearable=True,
         outlined=True,
         filled=True,
@@ -65,9 +68,9 @@ with layout.toolbar as tb:
         **COMPACT,
     )
     vuetify.VSpacer()
-    tb.add_child("{{ viewMode }}")
-    vuetify.VSpacer()
-    with vuetify.VBtnToggle(v_model=("active_controls", "files"), **COMPACT, outlined=True, rounded=True):
+    with vuetify.VBtnToggle(
+        v_model=("active_controls", "files"), **COMPACT, outlined=True, rounded=True
+    ):
         for item in CONTROLS:
             with vuetify.VBtn(value=item.NAME, **COMPACT):
                 vuetify.VIcon(item.ICON, **item.ICON_STYLE)
@@ -92,7 +95,7 @@ with layout.content:
             interactive_quality=("view_interactive_quality", 70),
             mode="local",
             namespace="view",
-            style="width: 100%; height: 100%;"
+            style="width: 100%; height: 100%;",
         )
         ctrl.view_replace = html_view.replace_view
         ctrl.view_update = html_view.update

@@ -1,5 +1,5 @@
 from trame import state, controller as ctrl
-from trame.html import Div, vuetify;
+from trame.html import Div, vuetify
 from paraview import simple
 
 NAME = "settings"
@@ -11,19 +11,23 @@ COMPACT = {
     "hide_details": True,
 }
 
+
 def to_float(hex):
     return int(hex, 16) / 255.0
+
 
 def to_hex(float_value):
     v = int(float_value * 255)
     s = f"00{hex(v).split('x')[1]}"
     return s[-2:]
 
+
 # Extract view BG color
 view = simple.GetRenderView()
 view.UseColorPaletteForBackground = 0
 [red, green, blue] = view.Background
 VIEW_BG_HEX = f"#{to_hex(red)}{to_hex(green)}{to_hex(blue)}"
+
 
 def create_card(title, reset_fn, **kwargs):
     with vuetify.VCard(classes="pa-0", flat=True, outlined=False, tile=True, **kwargs):
@@ -36,10 +40,15 @@ def create_card(title, reset_fn, **kwargs):
         vuetify.VDivider()
         return vuetify.VCardText()
 
+
 def create_panel(container):
     with container:
-        with vuetify.VCol(v_if=(f"active_controls == '{NAME}'",), classes="mx-0 pa-0", **COMPACT):
-            with vuetify.VRow(classes="my-0 py-3 mx-0 px-3 d-flex align-center justify-space-between"):
+        with vuetify.VCol(
+            v_if=(f"active_controls == '{NAME}'",), classes="mx-0 pa-0", **COMPACT
+        ):
+            with vuetify.VRow(
+                classes="my-0 py-3 mx-0 px-3 d-flex align-center justify-space-between"
+            ):
                 with Div(classes="d-flex align-center"):
                     vuetify.VIcon(
                         classes="mr-2",
@@ -83,7 +92,9 @@ def create_panel(container):
                     hide_mode_switch=True,
                 )
 
-            with create_card("Remote rendering", reset_remote_rendering, v_if=("settings_advanced",)):
+            with create_card(
+                "Remote rendering", reset_remote_rendering, v_if=("settings_advanced",)
+            ):
                 vuetify.VSlider(
                     label="Ratio",
                     v_model=("view_interactive_ratio", 1),
@@ -102,7 +113,6 @@ def create_panel(container):
                 )
 
 
-
 @state.change("view_background")
 def update_background(view_background, **kwargs):
     red = to_float(view_background[1:3])
@@ -111,8 +121,10 @@ def update_background(view_background, **kwargs):
     view.Background = [red, green, blue]
     ctrl.view_update()
 
+
 def reset_bg_color():
     state.view_background = VIEW_BG_HEX
+
 
 def reset_remote_rendering():
     state.view_interactive_ratio = 1
