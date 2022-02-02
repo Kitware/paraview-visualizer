@@ -63,8 +63,9 @@ def load_file(files):
 
     # Update state
     state.active_controls = pipeline_name
-    ctrl.pipeline_update()
-    ctrl.view_update(reset_camera=True)
+
+    # Use life cycle handler
+    ctrl.on_data_change(reset_camera=True)
 
 
 # -----------------------------------------------------------------------------

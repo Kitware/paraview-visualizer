@@ -49,6 +49,5 @@ class Algorithms(ListBrowser):
         newProxy = simple.__dict__[name]()
         rep = simple.Show(newProxy)
 
-        # FIXME?
-        ctrl.pipeline_update()
-        ctrl.view_update()
+        # Use life cycle handler
+        ctrl.on_data_change()

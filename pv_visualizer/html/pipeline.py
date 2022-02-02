@@ -30,7 +30,7 @@ class PipelineBrowser(GitTree):
             **kwargs,
         )
 
-    def on_active_change(self, active_ids):
+    def on_active_change(self, active_ids, **kwargs):
         proxy = None
         if len(active_ids):
             proxy = id_to_proxy(active_ids[0])
@@ -38,23 +38,23 @@ class PipelineBrowser(GitTree):
         simple.SetActiveSource(proxy)
         self.update_active()
 
-    def on_visibility_change(self, id, visible):
+    def on_visibility_change(self, id, visible, **kwargs):
         proxy = id_to_proxy(id)
         view_proxy = simple.GetActiveView()
         representation = simple.GetRepresentation(proxy=proxy, view=view_proxy)
         representation.Visibility = 1 if visible else 0
 
-        self.update_sources()
-        ctrl.view_update()  # FIXME ?
+        # Use life cycle handler
+        ctrl.on_data_change()
 
-    def update_active(self):
+    def update_active(self, **kwargs):
         actives = []
         active_proxy = simple.GetActiveSource()
         if active_proxy:
             actives.append(active_proxy.GetGlobalIDAsString())
         state.pipeline_actives = actives
 
-    def update_sources(self):
+    def update_sources(self, **kwargs):
         sources = []
         proxies = PXM.GetProxiesInGroup("sources")
         view_proxy = simple.GetActiveView()
@@ -90,6 +90,6 @@ class PipelineBrowser(GitTree):
 
         state.pipeline_sources = sources
 
-    def update(self):
-        self.update_sources()
-        self.update_active()
+    def update(self, **kwargs):
+        self.update_sources(**kwargs)
+        self.update_active(**kwargs)

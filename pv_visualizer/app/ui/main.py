@@ -28,10 +28,24 @@ CONTROLS = [
 # Dynamic reloading
 # -----------------------------------------------------------------------------
 
+LIFE_CYCLES = [
+    "on_data_change",
+]
+
+
+def bind_life_cycle_methods():
+    ctrl.on_data_change.add(ctrl.view_update)
+    ctrl.on_data_change.add(ctrl.pipeline_update)
+
 
 def on_reload(reload_modules):
+    for name in LIFE_CYCLES:
+        ctrl[name].clear()
     reload_modules(*CONTROLS, state_change)
+    bind_life_cycle_methods()
 
+
+bind_life_cycle_methods()
 
 # -----------------------------------------------------------------------------
 # Layout
