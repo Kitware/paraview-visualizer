@@ -38,6 +38,9 @@ class PipelineBrowser(GitTree):
         simple.SetActiveSource(proxy)
         self.update_active()
 
+        # Use life cycle handler
+        ctrl.on_active_proxy_change()
+
     def on_visibility_change(self, id, visible, **kwargs):
         proxy = id_to_proxy(id)
         view_proxy = simple.GetActiveView()

@@ -30,12 +30,14 @@ CONTROLS = [
 
 LIFE_CYCLES = [
     "on_data_change",
+    "on_active_proxy_change",
 ]
 
 
 def bind_life_cycle_methods():
     ctrl.on_data_change.add(ctrl.view_update)
     ctrl.on_data_change.add(ctrl.pipeline_update)
+    ctrl.on_active_proxy_change.add(state_change.update_active_proxies)
 
 
 def on_reload(reload_modules):

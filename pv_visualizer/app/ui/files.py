@@ -42,6 +42,7 @@ def add_prefix(file_path):
 
 
 def load_file(files):
+    active_change = False
     if isinstance(files, list):
         # time serie
         files_to_load = map(add_prefix, files)
@@ -55,6 +56,7 @@ def load_file(files):
         view = simple.GetActiveView()
         view.MakeRenderWindowInteractor(True)
         ctrl.view_replace(view)
+        active_change = True
     else:
         # data file
         data_to_load = add_prefix(files)
@@ -66,6 +68,8 @@ def load_file(files):
 
     # Use life cycle handler
     ctrl.on_data_change(reset_camera=True)
+    if active_change:
+        ctrl.on_active_proxy_change()
 
 
 # -----------------------------------------------------------------------------
