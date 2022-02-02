@@ -1,5 +1,9 @@
-from trame import state
-from trame.html import vuetify
+from trame import state, controller as ctrl
+from trame.html import vuetify, simput, Div
+
+from pv_visualizer.app.engine.proxymanager import ParaviewProxyManager
+
+PXM = ParaviewProxyManager()
 
 DEFAULT_NAMES = [
     {
@@ -37,8 +41,8 @@ BTN_STYLE = {
     "x_small": True,
     "fab": True,
     "elevation": 0,
-    "outlined": ("!proxy_changeset",),
-    "disabled": ("!proxy_changeset",),
+    "outlined": ("!pxmChangeSet",),
+    "disabled": ("!pxmChangeSet",),
 }
 
 BTN_APPLY_STYLE = {
@@ -53,14 +57,15 @@ BTN_RESET_STYLE = {
 }
 
 
-class ProxyEditor(vuetify.VCol):
+class ProxyEditor(Div):
     def __init__(self, proxies=DEFAULT_NAMES, **kwargs):
-        super().__init__(dense=True, classes="pa-0 ma-0", **kwargs)
+        super().__init__(
+            style="min-height: 0;", classes="d-flex flex-column pa-0 ma-0", **kwargs
+        )
         self.var_names = []
 
         # Init state
         state.active_proxy_id = 0
-        state.proxy_changeset = 1
 
         with self:
             self.toolbar = vuetify.VToolbar(
@@ -87,10 +92,19 @@ class ProxyEditor(vuetify.VCol):
                             vuetify.VIcon(item.get("icon"))
 
                 vuetify.VSpacer()
-                with vuetify.VBtn(**BTN_RESET_STYLE, click=self.reset):
+                with vuetify.VBtn(**BTN_RESET_STYLE, click=ctrl.pxm_reset):
                     vuetify.VIcon("mdi-undo-variant")
-                with vuetify.VBtn(**BTN_APPLY_STYLE, click=self.apply):
+                with vuetify.VBtn(**BTN_APPLY_STYLE, click=ctrl.pxm_apply):
                     vuetify.VIcon("mdi-check-bold")
+
+            # DEBUG - WIP
+            with Div(style="overflow: auto;", classes="py-2"):
+                simput.SimputItem(
+                    v_if=("active_proxy_index === 0",), itemId=("source_id",)
+                )
+                simput.SimputItem(
+                    v_if=("active_proxy_index === 1",), itemId=("representation_id",)
+                )
 
         # Attach state listener
         state.change("active_proxy_index", *self.var_names)(self.update_proxy_edit)
@@ -98,13 +112,3 @@ class ProxyEditor(vuetify.VCol):
 
     def update_proxy_edit(self, active_proxy_index, **kwargs):
         state.active_proxy_id = state[self.var_names[active_proxy_index]]
-        # DEBUG - fake changeset edit
-        state.proxy_changeset = active_proxy_index
-
-    def apply(self, *args, **kwargs):
-        state.proxy_changeset = 0
-        print("flush simput edits...")
-
-    def reset(self, *args, **kwargs):
-        state.proxy_changeset = 0
-        print("reset simput edits...")

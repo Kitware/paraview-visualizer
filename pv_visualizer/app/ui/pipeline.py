@@ -16,6 +16,9 @@ NAME = "pipeline"
 ICON = "mdi-source-branch"
 ICON_STYLE = {"style": "transform: scale(1, -1);"}
 
+ICON_COLLAPSE = "mdi-unfold-less-horizontal"
+ICON_EXPAND = "mdi-unfold-more-horizontal"
+
 COMPACT = {
     "dense": True,
     "hide_details": True,
@@ -31,15 +34,13 @@ TOP_ICONS = [
 
 def create_panel(container):
     with container:
-        with vuetify.VCol(
+        with Div(
             v_if=(f"active_controls == '{NAME}'",),
-            dense=True,
-            classes="pa-0 ma-0 fill-height",
+            classes="pa-0 ma-0 d-flex flex-column",
+            style="height: 100%;",
         ):
             with vuetify.VToolbar(
-                dense=True,
-                outlined=True,
-                classes="pa-0 ma-0",
+                dense=True, outlined=True, classes="pa-0 ma-0", style="flex: none;"
             ):
                 with vuetify.VTabs(
                     v_model=("pipeline_elem", 0),
@@ -50,20 +51,25 @@ def create_panel(container):
                 ):
                     for item in TOP_ICONS:
                         with vuetify.VTab(
-                            classes="px-0 mx-0", style="min-width: 40px;", **COMPACT
+                            classes="px-0 mx-0",
+                            style="min-width: 40px;",
+                            **COMPACT,
                         ):
                             vuetify.VIcon(item.get("icon"), **item.get("kwargs"))
 
                 vuetify.VSpacer()
                 with vuetify.VBtn(
-                    small=True, icon=True, click="show_pipeline = !show_pipeline"
+                    small=True,
+                    icon=True,
+                    click="show_pipeline = !show_pipeline",
                 ):
-                    vuetify.VIcon("mdi-unfold-less-horizontal", v_if=("show_pipeline",))
-                    vuetify.VIcon(
-                        "mdi-unfold-more-horizontal", v_if=("!show_pipeline",)
-                    )
+                    vuetify.VIcon(ICON_COLLAPSE, v_if=("show_pipeline",))
+                    vuetify.VIcon(ICON_EXPAND, v_if=("!show_pipeline",))
 
-            with Div(style="height: 33vh;", v_if=("show_pipeline", 1)):
+            with Div(
+                style="flex: none; max-height: calc((100vh - 48px)/2 - 48px); overflow: auto;",
+                v_if=("show_pipeline", 1),
+            ):
                 pipeline_browser = pipeline.PipelineBrowser(
                     v_show=("pipeline_elem === 0",),
                     width=container.width,

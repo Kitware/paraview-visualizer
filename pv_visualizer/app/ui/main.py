@@ -1,12 +1,15 @@
 from trame import controller as ctrl
 from trame.layouts import SinglePageWithDrawer
-from trame.html import vuetify, paraview
+from trame.html import vuetify, paraview, simput
 
 # from pv_visualizer import html as my_widgets
 from pv_visualizer.app import assets
+from pv_visualizer.app.engine.proxymanager import ParaviewProxyManager
 from pv_visualizer.app.ui import pipeline, files, algorithms, settings, state_change
 
 from paraview import simple
+
+PXM = ParaviewProxyManager()
 
 # -----------------------------------------------------------------------------
 # Common style properties
@@ -61,6 +64,11 @@ layout = SinglePageWithDrawer(
     show_drawer_name="drawer_visibility",
     on_ready=ctrl.view_update,
 )
+
+layout.root = simput.Simput(PXM.ui_manager, PXM.pdm, prefix="pxm")
+
+ctrl.pxm_apply = layout.root.apply
+ctrl.pxm_reset = layout.root.reset
 
 # -----------------------------------------------------------------------------
 # Toolbar
