@@ -6,11 +6,11 @@ Web frontend to ParaView
 
 |image_1| |image_2| |image_3|
 
-.. |image_1| image:: https://raw.githubusercontent.com/Kitware/paraview-visualizer/master/pv_visualizer/documentation/gallery/pv_visualizer_00.jpg
+.. |image_1| image:: https://raw.githubusercontent.com/Kitware/paraview-visualizer/master/documentation/gallery/pv_visualizer_00.jpg
   :width: 30%
-.. |image_2| image:: https://raw.githubusercontent.com/Kitware/paraview-visualizer/master/pv_visualizer/documentation/gallery/pv_visualizer_01.jpg
+.. |image_2| image:: https://raw.githubusercontent.com/Kitware/paraview-visualizer/master/documentation/gallery/pv_visualizer_01.jpg
   :width: 30%
-.. |image_3| image:: https://raw.githubusercontent.com/Kitware/paraview-visualizer/master/pv_visualizer/documentation/gallery/pv_visualizer_02.jpg
+.. |image_3| image:: https://raw.githubusercontent.com/Kitware/paraview-visualizer/master/documentation/gallery/pv_visualizer_02.jpg
   :width: 30%
 
 
