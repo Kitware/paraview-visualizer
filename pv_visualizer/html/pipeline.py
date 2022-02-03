@@ -24,7 +24,9 @@ class PipelineBrowser(GitTree):
         super().__init__(
             sources=("pipeline_sources", []),
             actives=("pipeline_actives", []),
-            text_color=("$vuetify.theme.dark ? ['white', 'black'] : ['black', 'white']",),
+            text_color=(
+                "$vuetify.theme.dark ? ['white', 'black'] : ['black', 'white']",
+            ),
             width=width,
             actives_change=(self.on_active_change, "[$event]"),
             visibility_change=(self.on_visibility_change, "[]", "$event"),

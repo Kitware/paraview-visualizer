@@ -2,16 +2,11 @@ import os
 from pathlib import Path
 from trame import state, controller as ctrl
 
+from ..cli import get_args
 from pv_visualizer.html.file_browser import ParaViewFileBrowser
 from .pipeline import NAME as pipeline_name
 
 from paraview import simple
-
-# -----------------------------------------------------------------------------
-# Working directory
-# -----------------------------------------------------------------------------
-
-BASE_PATH = "/Users/sebastien.jourdain/Desktop/sc21"
 
 # -----------------------------------------------------------------------------
 # UI module
@@ -25,7 +20,7 @@ ICON_STYLE = {}
 def create_panel(container):
     with container:
         ParaViewFileBrowser(
-            BASE_PATH,
+            get_args().data,
             on_load_file=ctrl.on_load_file,
             query=("search", ""),
             v_if=(f"active_controls == '{NAME}'",),
@@ -38,7 +33,7 @@ def create_panel(container):
 
 
 def add_prefix(file_path):
-    return str(Path(os.path.join(BASE_PATH, file_path)).absolute())
+    return str(Path(os.path.join(get_args().data, file_path)).absolute())
 
 
 def load_file(files):

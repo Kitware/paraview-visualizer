@@ -115,6 +115,9 @@ def create_panel(container):
 
 @state.change("view_background")
 def update_background(view_background, **kwargs):
+    global view
+    view = simple.GetActiveView()
+    view.UseColorPaletteForBackground = 0
     red = to_float(view_background[1:3])
     green = to_float(view_background[3:5])
     blue = to_float(view_background[5:7])

@@ -1,4 +1,5 @@
 from trame import setup_dev
+from . import cli  # noqa
 from . import controller, ui
 
 

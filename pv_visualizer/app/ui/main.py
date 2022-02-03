@@ -5,7 +5,14 @@ from trame.html import vuetify, paraview, simput
 # from pv_visualizer import html as my_widgets
 from pv_visualizer.app import assets
 from pv_visualizer.app.engine.proxymanager import ParaviewProxyManager
-from pv_visualizer.app.ui import pipeline, files, algorithms, settings, state_change
+from pv_visualizer.app.ui import (
+    pipeline,
+    files,
+    algorithms,
+    settings,
+    view_toolbox,
+    state_change,
+)
 
 from paraview import simple
 
@@ -46,7 +53,7 @@ def bind_life_cycle_methods():
 def on_reload(reload_modules):
     for name in LIFE_CYCLES:
         ctrl[name].clear()
-    reload_modules(*CONTROLS, state_change)
+    reload_modules(*CONTROLS, view_toolbox, state_change)
     bind_life_cycle_methods()
 
 
@@ -113,6 +120,7 @@ with layout.drawer as dr:
 # -----------------------------------------------------------------------------
 with layout.content:
     with vuetify.VContainer(fluid=True, classes="fill-height pa-0 ma-0"):
+        view_toolbox.create_view_toolbox()
         html_view = paraview.VtkRemoteLocalView(
             simple.GetRenderView(),
             interactive_ratio=("view_interactive_ratio", 1),

@@ -1,8 +1,12 @@
+from . import engine
+
+
 def bind_methods():
     pass
 
 
 def on_start():
+    engine.initialize()
     bind_methods()
 
 
