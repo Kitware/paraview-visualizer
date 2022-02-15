@@ -1,5 +1,6 @@
 import yaml
-from paraview import servermanager
+from paraview import simple, servermanager
+from trame import state, controller as ctrl
 
 PENDING = True
 
@@ -378,3 +379,26 @@ class ProxyManagerHelper:
         # TODO
 
         return simput_entry.id
+
+    def delete_entry(self, pv_id):
+        pv_view = simple.GetActiveView()
+
+        s_id = self._id_pv_to_simput[pv_id]
+        s_source = self._pxm.get(s_id)
+
+        pv_source = s_source.object
+        pv_rep = simple.GetRepresentation(proxy=pv_source, view=pv_view)
+
+        s_id = self._id_pv_to_simput[pv_rep.GetGlobalIDAsString()]
+        s_rep = self._pxm.get(s_id)
+
+        self._pxm.delete(s_rep.id)
+        self._pxm.delete(s_source.id)
+
+        pv_rep.Visibility = 0 # Not sure why still around after delete
+        simple.Delete(pv_rep)
+        simple.Delete(pv_source)
+
+        # Trigger some life cycle events
+        ctrl.on_active_proxy_change()
+        ctrl.on_data_change()

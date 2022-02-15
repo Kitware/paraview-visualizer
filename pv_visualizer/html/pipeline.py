@@ -1,6 +1,8 @@
 from trame import state, controller as ctrl
 from trame.html.widgets import GitTree
 
+from .assets import ICON_URL_DELETE
+
 from paraview import simple, servermanager
 
 PXM = servermanager.ProxyManager()
@@ -28,8 +30,13 @@ class PipelineBrowser(GitTree):
                 "$vuetify.theme.dark ? ['white', 'black'] : ['black', 'white']",
             ),
             width=width,
+            # Actions
+            action_map=("pipeline_actions", { "delete": ICON_URL_DELETE }),
+            action_size=20,
+            # Events
             actives_change=(self.on_active_change, "[$event]"),
             visibility_change=(self.on_visibility_change, "[]", "$event"),
+            action=(self.on_action, "[]", "$event"),
             **kwargs,
         )
 
@@ -53,6 +60,10 @@ class PipelineBrowser(GitTree):
         # Use life cycle handler
         ctrl.on_data_change()
 
+    def on_action(self, id, action):
+        if action == "delete":
+            ctrl.on_delete(id)
+
     def update_active(self, **kwargs):
         actives = []
         active_proxy = simple.GetActiveSource()
@@ -64,6 +75,8 @@ class PipelineBrowser(GitTree):
         sources = []
         proxies = PXM.GetProxiesInGroup("sources")
         view_proxy = simple.GetActiveView()
+        leaves = set([key[1] for key in proxies])
+        node_map = {}
         for key in proxies:
             proxy = proxies[key]
 
@@ -93,6 +106,12 @@ class PipelineBrowser(GitTree):
                     source["parent"] = inputProp.GetGlobalIDAsString()
 
             sources.append(source)
+            node_map[source["id"]] = source
+            leaves.discard(source["parent"])
+
+        # Attach delete action to leaves only
+        for leaf in leaves:
+            node_map[leaf]["actions"] = ["delete"]
 
         state.pipeline_sources = sources
 

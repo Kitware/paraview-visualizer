@@ -33,7 +33,10 @@ class ParaviewProxyManager:
         # Connect to helper
         self._helper.set_simput(self._pxm, self._ui_manager)
         self._pxm.on(self.on_pxm_event)
+
+        # Controller binding
         ctrl.on_data_change.add(self.on_active_change)
+        ctrl.on_delete = self.on_proxy_delete
 
         # TMP - fake models
         self._pxm.load_model(yaml_file=os.path.join(BASE_DIR, "model/sample.yaml"))
@@ -76,6 +79,8 @@ class ParaviewProxyManager:
         state.source_id = self._helper.handle_proxy(source)
         state.representation_id = self._helper.handle_proxy(representation)
 
+    def on_proxy_delete(self, pv_id):
+        self._helper.delete_entry(pv_id)
 
 # -----------------------------------------------------------------------------
 # Life cycle listener
