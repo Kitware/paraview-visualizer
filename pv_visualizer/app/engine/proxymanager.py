@@ -22,15 +22,20 @@ from .pv_helper import ProxyManagerHelper
 class ParaviewProxyManager:
     def __init__(self):
         self._helper = ProxyManagerHelper(disable_domains=True)
-        self._pv_to_simput_id = {}
 
         # Load Simput models and layouts
-        self._pxm = ProxyManager()
+        self._pxm = ProxyManager(self._helper.factory)
         ui_resolver = VuetifyResolver()
         self._ui_manager = UIManager(self._pxm, ui_resolver)
         self._pdm = ProxyDomainManager()
         self._pxm.add_life_cycle_listener(self._pdm)
 
+        # Connect to helper
+        self._helper.set_simput(self._pxm, self._ui_manager)
+        self._pxm.on(self.on_pxm_event)
+        ctrl.on_data_change.add(self.on_active_change)
+
+        # TMP - fake models
         self._pxm.load_model(yaml_file=os.path.join(BASE_DIR, "model/sample.yaml"))
         self._ui_manager.load_language(
             yaml_file=os.path.join(BASE_DIR, "model/sample.yaml")
@@ -55,28 +60,21 @@ class ParaviewProxyManager:
     def ui_manager(self):
         return self._ui_manager
 
-    def on_active_change(self):
-        proxy = simple.GetActiveSource()
-        if proxy is None:
-            state.source_id = 0
-            return
+    def on_pxm_event(self, topic, **kwrags):
+        if topic == "commit":
+            ctrl.on_data_change()  # Trigger render
 
-        proxy_id = proxy.GetGlobalIDAsString()
-        spec_name = self._helper.spec_name(proxy)
+    def on_active_change(self, **kwargs):
+        source = simple.GetActiveSource()
+        view = simple.GetActiveView()
+        representation = None
+        if source is not None:
+            representation = simple.GetRepresentation(proxy=source, view=view)
+            state.active_proxy_source_id = source.GetGlobalIDAsString()
+            state.active_proxy_representation_id = representation.GetGlobalIDAsString()
 
-        try:
-            self._pxm.get_definition(spec_name)
-        except KeyError:
-            yaml_txt = self._helper.yaml(proxy)
-            self._pxm.load_model(yaml_content=yaml_txt)
-            self._ui_manager.load_language(yaml_content=yaml_txt)
-
-        if proxy_id not in self._pv_to_simput_id:
-            source = self._pxm.create(spec_name)
-            state.source_id = source.id
-            self._pv_to_simput_id[proxy_id] = source.id
-        else:
-            state.source_id = self._pv_to_simput_id[proxy_id]
+        state.source_id = self._helper.handle_proxy(source)
+        state.representation_id = self._helper.handle_proxy(representation)
 
 
 # -----------------------------------------------------------------------------
