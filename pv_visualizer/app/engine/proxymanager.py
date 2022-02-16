@@ -82,6 +82,7 @@ class ParaviewProxyManager:
     def on_proxy_delete(self, pv_id):
         self._helper.delete_entry(pv_id)
 
+
 # -----------------------------------------------------------------------------
 # Life cycle listener
 # -----------------------------------------------------------------------------

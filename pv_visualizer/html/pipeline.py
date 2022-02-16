@@ -31,7 +31,7 @@ class PipelineBrowser(GitTree):
             ),
             width=width,
             # Actions
-            action_map=("pipeline_actions", { "delete": ICON_URL_DELETE }),
+            action_map=("pipeline_actions", {"delete": ICON_URL_DELETE}),
             action_size=20,
             # Events
             actives_change=(self.on_active_change, "[$event]"),

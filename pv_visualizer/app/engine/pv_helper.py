@@ -2,6 +2,8 @@ import yaml
 from paraview import simple, servermanager
 from trame import state, controller as ctrl
 
+from . import pv_proxy
+
 PENDING = True
 
 DOMAIN_RANGE_ATTRIBUTES = [
@@ -184,128 +186,14 @@ class ProxyManagerHelper:
         if self._debug == True:
             print(msg)
 
-    # --------------------------------------------------------------------------
-    # Convenience method to get proxy defs, cached if available
-    # --------------------------------------------------------------------------
-    def getProxyDefinition(self, group, name):
-        cacheKey = "%s:%s" % (group, name)
-        if cacheKey in self._cache_proxy_def:
-            return self._cache_proxy_def[cacheKey]
-
-        xmlElement = servermanager.ActiveConnection.Session.GetProxyDefinitionManager().GetCollapsedProxyDefinition(
-            group, name, None
-        )
-        # print('\n\n\n (%s, %s): \n\n' % (group, name))
-        # xmlElement.PrintXML()
-        self._cache_proxy_def[cacheKey] = xmlElement
-        return xmlElement
-
-    def xml_extract_property_domain(self, xml_element):
-        if self._disable_domains:
-            return
-
-        elem_name = xml_element.GetName()
-        domain = None
-
-        if "Range" in elem_name:
-            domain = {"type": "Range"}
-            xml_attr_helper(xml_element, domain, DOMAIN_RANGE_ATTRIBUTES)
-        elif elem_name == "BooleanDomain":
-            domain = {"type": "Boolean"}
-        else:
-            print(f">>> No handler for domain: {elem_name} <<<")
-
-        return domain
-
-    def xml_extract_property_inners(self, xml_element):
-        """Process documentation tags + domains"""
-        add_on = {}
-        domains = []
-        children_size = xml_element.GetNumberOfNestedElements()
-        for i in range(children_size):
-            xml_child = xml_element.GetNestedElement(i)
-            elem_name = xml_child.GetName()
-
-            if elem_name == "Documentation":
-                add_on["_help"] = (
-                    xml_child.GetCharacterData().replace("\n", " ").replace("  ", " ")
-                )
-                while "  " in add_on["_help"]:
-                    add_on["_help"] = add_on["_help"].replace("  ", " ")
-            elif elem_name.endswith("Domain"):
-                domain = self.xml_extract_property_domain(xml_child)
-                if domain is not None:
-                    domains.append(domain)
-
-        if len(domains):
-            add_on["domains"] = domains
-
-        return add_on
-
-    def xml_extract_properties(self, xml_element):
-        properties = []
-        children_size = xml_element.GetNumberOfNestedElements()
-
-        for i in range(children_size):
-            xml_child = xml_element.GetNestedElement(i)
-            elem_name = xml_child.GetName()
-
-            if not elem_name.endswith("Property"):
-                print(f"Skip handling {elem_name}")
-                continue
-
-            # Fill prop with attributes
-            prop = {}
-            if not xml_attr_helper(xml_child, prop, PROPERTY_ATTRIBUTES):
-                continue
-
-            # Assign property type
-            if elem_name == "ProxyProperty" or elem_name == "InputProperty":
-                prop["type"] = "proxy"
-            elif elem_name.endswith("Property"):
-                prop["type"] = ELEM_NAME_TO_TYPES[elem_name]
-                if "initial" in prop:
-                    prop["initial"] = convert(elem_name, prop["initial"], prop["size"])
-
-            # Extract property internals (_help, domains, ...)
-            prop.update(self.xml_extract_property_inners(xml_child))
-
-            # Register property
-            properties.append(prop)
-
-        return properties
-
-    def spec_name(self, proxy):
-        group, name = proxy.GetXMLGroup(), proxy.GetXMLName()
-        return f"{group}__{name}"
-
-    def yaml(self, proxy):
-        spec_name = self.spec_name(proxy)
-        group, name = proxy.GetXMLGroup(), proxy.GetXMLName()
-        xml_elem = self.getProxyDefinition(group, name)
-        props = self.xml_extract_properties(xml_elem)
-        yaml_txt = yaml.dump({spec_name: props})
-        output = []
-        for line in yaml_txt.split("\n"):
-            if "- __name: " in line:
-                output.append(line.replace("- __name: ", " ") + ":")
-            else:
-                output.append(line)
-
-        return "\n".join(output)
-
-    # --------------------------------
-
     def handle_proxy(self, proxy):
         if proxy is None:
             return 0
 
-        spec_name = self.spec_name(proxy)
+        proxy_type = pv_proxy.proxy_type(proxy)
         proxy_id = proxy.GetGlobalIDAsString()
 
-        try:
-            self._pxm.get_definition(spec_name)
-        except KeyError:
+        if self._pxm.get_definition(proxy_type) is None:
             self._proxy_ensure_definition(proxy)
 
         if proxy_id not in self._id_pv_to_simput:
@@ -336,22 +224,24 @@ class ProxyManagerHelper:
         return list_to_fill
 
     def _proxy_ensure_definition(self, proxy):
-        try:
-            spec_name = self.spec_name(proxy)
-            self._pxm.get_definition(spec_name)
+        proxy_type = pv_proxy.proxy_type(proxy)
+        if self._pxm.get_definition(proxy_type) is not None:
             return
-        except KeyError:
-            pass  # Let's get to work...
 
         # Look first on our dependencies
         sub_proxies = self._proxy_extract_sub(proxy)
         for sub_p in sub_proxies:
             self._proxy_ensure_definition(sub_p)
 
+        # print('#'*80)
+        # print(pv_proxy.proxy_ui(proxy))
+        # print('#'*80)
+
         # Add definition
-        yaml_txt = self.yaml(proxy)
+        yaml_txt = pv_proxy.proxy_yaml(proxy)
         self._pxm.load_model(yaml_content=yaml_txt)
         self._ui_manager.load_language(yaml_content=yaml_txt)
+        self._ui_manager.load_ui(xml_content=pv_proxy.proxy_ui(proxy))
 
     def _proxy_ensure_binding(self, proxy):
         proxy_id = proxy.GetGlobalIDAsString()
@@ -370,9 +260,9 @@ class ProxyManagerHelper:
             self._proxy_ensure_binding(sub_p)
 
         # Take care of ourself
-        spec_name = self.spec_name(proxy)
+        proxy_type = pv_proxy.proxy_type(proxy)
         self._factory.next(proxy)
-        simput_entry = self._pxm.create(spec_name, _push_fn=proxy_push)
+        simput_entry = self._pxm.create(proxy_type, _push_fn=proxy_push)
         self._id_pv_to_simput[proxy_id] = simput_entry.id
 
         # Read property from proxy and update simput entry
@@ -381,6 +271,7 @@ class ProxyManagerHelper:
         return simput_entry.id
 
     def delete_entry(self, pv_id):
+        """FIXME as it is not working properly"""
         pv_view = simple.GetActiveView()
 
         s_id = self._id_pv_to_simput[pv_id]
@@ -395,7 +286,7 @@ class ProxyManagerHelper:
         self._pxm.delete(s_rep.id)
         self._pxm.delete(s_source.id)
 
-        pv_rep.Visibility = 0 # Not sure why still around after delete
+        pv_rep.Visibility = 0  # Not sure why still around after delete
         simple.Delete(pv_rep)
         simple.Delete(pv_source)
 
