@@ -1,107 +1,12 @@
-import yaml
 from paraview import simple, servermanager
 from trame import state, controller as ctrl
+from simput.core import Proxy
+
+
 
 from . import pv_proxy
 
 PENDING = True
-
-DOMAIN_RANGE_ATTRIBUTES = [
-    {
-        "name": "min",
-        "attribute": "min",
-        "convert": float,
-    },
-    {
-        "name": "max",
-        "attribute": "max",
-        "convert": float,
-    },
-]
-
-PROPERTY_ATTRIBUTES = [
-    {
-        "name": "__name",
-        "attribute": "name",
-    },
-    {
-        "name": "_label",
-        "attribute": "name",
-    },
-    {
-        "name": "size",
-        "attribute": "number_of_elements",
-        "default": 1,
-        "convert": int,
-    },
-    {
-        "name": "internal",
-        "attribute": "is_internal",
-        "default": 0,
-        "convert": int,
-        "skip": 1,
-    },
-    {
-        "name": "information",
-        "attribute": "information_only",
-        "default": 0,
-        "convert": int,
-        "skip": 1,
-    },
-    {
-        "name": "_panel",
-        "attribute": "panel_visibility",
-        "default": "default",
-        "skip": "never",
-    },
-    {
-        "name": "initial",
-        "attribute": "default_values",
-    },
-]
-
-ELEM_NAME_TO_TYPES = {
-    "DoubleVectorProperty": "float64",
-    "IntVectorProperty": "int32",
-    "StringVectorProperty": "string",
-    "BooleanVectorProperty": "bool",
-}
-
-ELEM_NAME_TO_CONVERT = {
-    "DoubleVectorProperty": float,
-    "IntVectorProperty": int,
-    "StringVectorProperty": str,
-    "BooleanVectorProperty": bool,
-}
-
-
-def convert(type_name, value, size):
-    type = ELEM_NAME_TO_CONVERT[type_name]
-    if size > 1:
-        tokens = value.split(" ")
-        if len(tokens) != size:
-            print(f"Invalid size({size}) for value '{value}'")
-        return list(map(type, tokens))
-    return type(value)
-
-
-def xml_attr_helper(xml_elem, dict_to_fill, attr_map):
-    for attr_entry in attr_map:
-        # Fill with default
-        if "default" in attr_entry and "skip" not in attr_entry:
-            dict_to_fill[attr_entry.get("name")] = attr_entry.get("default")
-
-        # Extract standard attributes
-        attr = xml_elem.GetAttribute(attr_entry.get("attribute"))
-        if attr is not None:
-            value = attr_entry.get("convert", str)(attr)
-            if "skip" in attr_entry and value == attr_entry.get("skip"):
-                return False
-            else:
-                dict_to_fill[attr_entry.get("name")] = value
-
-    return True
-
 
 class PVObjectFactory:
     def __init__(self):
@@ -116,8 +21,37 @@ class PVObjectFactory:
 
         return obj
 
+def proxy_pull(pv_proxy, si_item):
+    _id = si_item.id
+    for name in si_item.list_property_names():
+        pv_property = pv_proxy.GetProperty(name)
+        if hasattr(pv_property, "SMProperty"):
+            pv_property = pv_property.SMProperty
 
-from simput.core import Proxy
+        if pv_property is None:
+            print(f"No property {name} for proxy {pv_proxy.GetXMLName()}")
+            continue
+
+        # Custom handling for proxy
+        property_class = pv_property.GetClassName()
+        if property_class in ["vtkSMProxyProperty", "vtkSMInputProperty"]:
+            print(f"Need to handle proxy for {name} of proxy {pv_proxy.GetXMLName()}")
+        else:
+            size = pv_property.GetNumberOfElements()
+            if size == 0:
+                continue
+
+            if size > 1:
+                value = []
+                for i in range(size):
+                    value.append(pv_property.GetElement(i))
+            else:
+                value = pv_property.GetElement(0)
+
+            # print(f"{property_class}({size})::{name} = {value} ({type(value)})")
+            si_item.set_property(name, value)
+
+    si_item.commit()
 
 
 def proxy_push(simput_item):
@@ -266,7 +200,7 @@ class ProxyManagerHelper:
         self._id_pv_to_simput[proxy_id] = simput_entry.id
 
         # Read property from proxy and update simput entry
-        # TODO
+        proxy_pull(proxy, simput_entry)
 
         return simput_entry.id
 

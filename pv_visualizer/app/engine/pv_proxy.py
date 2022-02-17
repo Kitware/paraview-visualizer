@@ -1,3 +1,4 @@
+import sys
 import yaml
 import xml.etree.ElementTree as ET
 
@@ -11,14 +12,116 @@ PROPERTY_TYPES = {
     "vtkSMInputProperty": "proxy",
 }
 
+DOMAIN_TYPES = {
+    "vtkSMBooleanDomain": "Boolean",
+    "vtkSMDoubleRangeDomain": "Range",
+    "vtkSMIntRangeDomain": "Range",
+    "vtkSMEnumerationDomain": "LabelList",
+    # ----
+    "vtkSMDataTypeDomain": "xxxxxxxxxxxxxxxx",
+    "vtkSMProxyListDomain": "xxxxxxxxxxxxxxx",
+    "vtkSMInputArrayDomain": "xxxxxxxxxxxxxx",
+    "vtkSMRepresentationTypeDomain": "xxxxxx",
+    "vtkSMProxyGroupDomain": "xxxxxxxxxxxxxx",
+    "vtkSMDataAssemblyDomain": "xxxxxxxxxxxx",
+    "vtkSMRepresentedArrayListDomain": "xxxx",
+    "vtkSMBoundsDomain": "xxxxxxxxxxxxxxxxxx",
+    "vtkSMArrayListDomain": "xxxxxxxxxxxxxxx",
+    "vtkSMArrayRangeDomain": "xxxxxxxxxxxxxx",
+    "vtkSMNumberOfComponentsDomain": "xxxxxx",
+    "vtkSMRangedTransferFunctionDomain": "xx",
+    "vtkSMMaterialDomain": "xxxxxxxxxxxxxxxx",
+    "vtkSMArraySelectionDomain": "xxxxxxxxxx",
+    # ----
+    "1": "ProxyBuilder",
+    "2": "FieldSelector",
+    "3": "BoundsCenter",
+}
+
+DOMAIN_DEBUG = { }
+
+def domain_bool(domain):
+    return {}
+
+def domain_range(domain):
+    if domain.GetClassName() == "vtkSMDoubleRangeDomain":
+        _max = sys.float_info.max
+    else:
+        _max = sys.maxsize
+
+    level = 0
+    value_range = [-_max, _max]
+
+    if domain.GetMinimumExists(0):
+        value_range[0] = domain.GetMinimum(0)
+        level += 1
+
+    if domain.GetMaximumExists(0):
+        value_range[1] = domain.GetMaximum(0)
+        level += 1
+
+    if level == 0:
+        return { "skip": True }
+
+    return { "level": level, "value_range": value_range}
+
+def domain_label_list(domain):
+    size = domain.GetNumberOfEntries()
+    values = []
+    for i in range(size):
+        values.append({
+            "text": domain.GetEntryText(i),
+            "value": domain.GetEntryValue(i),
+        })
+
+    return { "name": "List", "values": values }
+
+DOMAIN_HANDLERS = {
+    "Boolean": domain_bool,
+    "Range": domain_range,
+    "LabelList": domain_label_list
+    # "ProxyBuilder": [""],
+    # "FieldSelector": ["property", "location", "size", "isA"],
+}
+
 
 def proxy_type(proxy):
     group, name = proxy.GetXMLGroup(), proxy.GetXMLName()
     return f"{group}__{name}"
 
-
 def property_domains_yaml(property):
-    pass
+    domains = []
+
+    iter = property.NewDomainIterator()
+    iter.Begin()
+    while not iter.IsAtEnd():
+        domain = iter.GetDomain()
+        domain_class = domain.GetClassName()
+        domain_name = domain.GetXMLName()
+        domain_type = DOMAIN_TYPES.get(domain_class)
+
+        if domain_type is None:
+            print(f"Don't know how to handle domain: {domain_class}")
+        elif domain_class in DOMAIN_DEBUG:
+            print("~"*40)                       # <<< DEBUG
+            print(domain_class)                 # <<< DEBUG
+            print("~"*40)                       # <<< DEBUG
+            for method_name in dir(domain):     # <<< DEBUG
+                if method_name[0] != "_":       # <<< DEBUG
+                    print(f" > {method_name}")  # <<< DEBUG
+        elif DOMAIN_HANDLERS.get(domain_type) is not None:
+            domain_entry = {
+                "name": domain_name,
+                "type": domain_type,
+                **DOMAIN_HANDLERS[domain_type](domain),
+            }
+            if domain_entry.get("skip") is None:
+                domains.append(domain_entry)
+
+        # move to next domain
+        iter.Next()
+
+    return domains
 
 
 def property_yaml(property):
@@ -32,7 +135,9 @@ def property_yaml(property):
     ):
         return {}
 
-    property_definition["_label"] = property.GetXMLLabel()
+
+    if property.GetXMLLabel():
+        property_definition["_label"] = property.GetXMLLabel()
 
     if (
         property.GetDocumentation() is not None
@@ -54,7 +159,8 @@ def property_yaml(property):
     if size > 1:
         property_definition["size"] = size
 
-    # property_definition["domains"] = ""
+    # Domains
+    property_definition["domains"] = property_domains_yaml(property)
 
     return {property_name: property_definition}
 
@@ -74,6 +180,10 @@ def proxy_yaml(proxy):
         property = prop_iter.GetProperty()
         proxy_definition.update(property_yaml(property))
         prop_iter.Next()
+
+    # print("#"*80)
+    # print(yaml.dump({type_proxy: proxy_definition}))
+    # print("#"*80)
 
     return yaml.dump({type_proxy: proxy_definition})
 
@@ -131,4 +241,4 @@ def proxy_ui(proxy):
         ui.append(xml_elem)
 
     ET.indent(layouts)
-    return ET.tostring(layouts, encoding="UTF-8")
+    return ET.tostring(layouts, encoding="UTF-8").decode("utf-8")
