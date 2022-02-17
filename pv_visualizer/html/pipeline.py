@@ -1,7 +1,7 @@
 from trame import state, controller as ctrl
 from trame.html.widgets import GitTree
 
-from .assets import ICON_URL_DELETE
+from .assets import ASSET_MANAGER
 
 from paraview import simple, servermanager
 
@@ -31,7 +31,7 @@ class PipelineBrowser(GitTree):
             ),
             width=width,
             # Actions
-            action_map=("pipeline_actions", {"delete": ICON_URL_DELETE}),
+            action_map=("pipeline_actions", {"delete": ASSET_MANAGER.icon_delete}),
             action_size=20,
             # Events
             actives_change=(self.on_active_change, "[$event]"),
