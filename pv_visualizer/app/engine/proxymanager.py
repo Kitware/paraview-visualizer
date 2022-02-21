@@ -2,8 +2,6 @@ import os
 
 from trame import Singleton, state, controller as ctrl
 
-from paraview import simple
-
 from simput.core import ProxyManager, UIManager, ProxyDomainManager
 from simput.ui.web import VuetifyResolver
 from simput.domains import register_domains
@@ -16,6 +14,12 @@ register_domains()
 register_values()
 
 from .pv_helper import ProxyManagerHelper
+
+
+try:
+    from paraview import simple
+except:
+    simple = None
 
 
 @Singleton

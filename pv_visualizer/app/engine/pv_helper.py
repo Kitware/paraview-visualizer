@@ -1,12 +1,16 @@
-from paraview import simple, servermanager
-from trame import state, controller as ctrl
+from trame import controller as ctrl
 from simput.core import Proxy
-
-
 
 from . import pv_proxy
 
+try:
+    from paraview import simple, servermanager
+except:
+    simple = None
+    servermanager = None
+
 PENDING = True
+
 
 class PVObjectFactory:
     def __init__(self):
@@ -20,6 +24,7 @@ class PVObjectFactory:
         self._next = None
 
         return obj
+
 
 def proxy_pull(pv_proxy, si_item):
     _id = si_item.id

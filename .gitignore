@@ -25,3 +25,6 @@ pnpm-debug.log*
 __pycache__
 *egg-info
 *pyc
+
+build
+dist

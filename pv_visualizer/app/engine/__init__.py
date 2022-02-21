@@ -1,9 +1,12 @@
 r"""
 Define your classes and create the instances that you need to expose
 """
-from trame import state, controller as ctrl
 from ..cli import get_args
-from paraview import simple
+
+try:
+    from paraview import simple
+except:
+    simple = None
 
 # ---------------------------------------------------------
 # Methods

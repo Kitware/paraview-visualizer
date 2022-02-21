@@ -1,6 +1,10 @@
 from trame import state, controller as ctrl
 from trame.html import Div, vuetify
-from paraview import simple
+
+try:
+    from paraview import simple
+except:
+    simple = None
 
 NAME = "settings"
 ICON = "mdi-cog"
@@ -23,10 +27,14 @@ def to_hex(float_value):
 
 
 # Extract view BG color
-view = simple.GetRenderView()
-view.UseColorPaletteForBackground = 0
-[red, green, blue] = view.Background
-VIEW_BG_HEX = f"#{to_hex(red)}{to_hex(green)}{to_hex(blue)}"
+if simple is None:
+    view = None
+    VIEW_BG_HEX = "#ffffff"
+else:
+    view = simple.GetRenderView()
+    view.UseColorPaletteForBackground = 0
+    [red, green, blue] = view.Background
+    VIEW_BG_HEX = f"#{to_hex(red)}{to_hex(green)}{to_hex(blue)}"
 
 
 def create_card(title, reset_fn, **kwargs):

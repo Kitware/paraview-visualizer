@@ -1,5 +1,9 @@
 from trame import state
-from paraview import simple
+
+try:
+    from paraview import simple
+except:
+    simple = None
 
 
 @state.change("active_controls")
@@ -8,6 +12,11 @@ def update_active_panel(active_controls, **kwargs):
 
 
 def update_active_proxies(**kwargs):
+    if simple is None:
+        state.active_proxy_source_id = 0
+        state.active_proxy_representation_id = 0
+        return
+
     active_view = simple.GetActiveView()
     state.active_proxy_view_id = active_view.GetGlobalIDAsString()
 

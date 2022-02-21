@@ -4,6 +4,10 @@ import re
 from trame import state
 from trame.html.widgets import ListBrowser
 
+try:
+    from paraview import simple
+except:
+    simple = None
 
 class ParaViewPathResolver:
     def __init__(
@@ -23,14 +27,16 @@ class ParaViewPathResolver:
          - name: Name of that base directory that will show up on the web
          - excludeRegex: Regular expression of what should be excluded from the list of files/directories
         """
-        from paraview import simple
-
         self.multiRoot = False  # FIXME
         self.baseDirectory = basePath
 
         self.rootName = name
         self.pattern = re.compile(excludeRegex)
         self.gPattern = re.compile(groupRegex)
+
+        if simple is None:
+            return
+
         pxm = simple.servermanager.ProxyManager()
         self.directory_proxy = pxm.NewProxy("misc", "ListDirectory")
         self.fileList = simple.servermanager.VectorProperty(
@@ -41,6 +47,16 @@ class ParaViewPathResolver:
         )
 
     def handleSingleRoot(self, baseDirectory, relativeDir, startPath=None):
+        if simple is None:
+            return {
+            "label": "No ParaView",
+            "files": [],
+            "dirs": [],
+            "groups": [],
+            "path": "",
+        }
+
+
         path = startPath or [self.rootName]
         if len(relativeDir) > len(self.rootName):
             relativeDir = relativeDir[len(self.rootName) + 1 :]

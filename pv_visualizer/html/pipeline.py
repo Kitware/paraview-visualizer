@@ -3,9 +3,14 @@ from trame.html.widgets import GitTree
 
 from .assets import ASSET_MANAGER
 
-from paraview import simple, servermanager
+try:
+    from paraview import simple, servermanager
 
-PXM = servermanager.ProxyManager()
+    PXM = servermanager.ProxyManager()
+except:
+    simple = None
+    servermanager = None
+    PXM = None
 
 
 def id_to_proxy(_id):

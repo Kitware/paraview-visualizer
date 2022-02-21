@@ -14,7 +14,10 @@ from pv_visualizer.app.ui import (
     state_change,
 )
 
-from paraview import simple
+try:
+    from paraview import simple
+except:
+    simple = None
 
 PXM = ParaviewProxyManager()
 
@@ -122,7 +125,7 @@ with layout.content:
     with vuetify.VContainer(fluid=True, classes="fill-height pa-0 ma-0"):
         view_toolbox.create_view_toolbox()
         html_view = paraview.VtkRemoteLocalView(
-            simple.GetRenderView(),
+            simple.GetRenderView() if simple else None,
             interactive_ratio=("view_interactive_ratio", 1),
             interactive_quality=("view_interactive_quality", 70),
             mode="local",

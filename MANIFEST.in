@@ -1,1 +1,4 @@
 graft pv_visualizer/html/module/serve
+graft pv_visualizer/html/assets
+graft pv_visualizer/app/assets
+graft pv_visualizer/app/engine/model

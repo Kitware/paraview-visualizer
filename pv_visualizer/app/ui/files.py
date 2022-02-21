@@ -6,7 +6,10 @@ from ..cli import get_args
 from pv_visualizer.html.file_browser import ParaViewFileBrowser
 from .pipeline import NAME as pipeline_name
 
-from paraview import simple
+try:
+    from paraview import simple
+except:
+    simple = None
 
 # -----------------------------------------------------------------------------
 # UI module

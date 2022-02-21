@@ -1,0 +1,36 @@
+PyWebVue: # Default app under /index.html
+  app: pv-visualizer
+  cmd:
+    - /opt/paraview/bin/pvpython
+    - -m
+    - paraview.apps.trame
+    - --venv
+    - /deploy/server/venv
+    - --trame-app
+    - pv_visualizer
+    - --host
+    - ${host}
+    - --port
+    - ${port}
+    - --authKey
+    - ${secret}
+    - --server
+    - --data
+    - /data
+Visualizer: # /Visualizer.html
+  app: pv-visualizer
+  cmd:
+    - /opt/paraview/bin/pvpython
+    - -m
+    - paraview.apps.trame
+    - --trame-app
+    - pv_visualizer
+    - --host
+    - ${host}
+    - --port
+    - ${port}
+    - --authKey
+    - ${secret}
+    - --server
+    - --data
+    - ${data}

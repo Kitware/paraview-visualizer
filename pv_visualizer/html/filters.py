@@ -1,7 +1,10 @@
 from trame import state, controller as ctrl
 from trame.html.widgets import ListBrowser
 
-from paraview import simple
+try:
+    from paraview import simple
+except:
+    simple = None
 
 SOURCES = [
     "Cone",

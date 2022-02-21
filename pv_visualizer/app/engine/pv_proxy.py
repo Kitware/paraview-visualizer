@@ -2,7 +2,10 @@ import sys
 import yaml
 import xml.etree.ElementTree as ET
 
-from paraview import servermanager
+try:
+    from paraview import servermanager
+except:
+    servermanager = None
 
 PROPERTY_TYPES = {
     "vtkSMIntVectorProperty": "int32",
@@ -38,10 +41,12 @@ DOMAIN_TYPES = {
     "3": "BoundsCenter",
 }
 
-DOMAIN_DEBUG = { }
+DOMAIN_DEBUG = {}
+
 
 def domain_bool(domain):
     return {}
+
 
 def domain_range(domain):
     if domain.GetClassName() == "vtkSMDoubleRangeDomain":
@@ -61,20 +66,24 @@ def domain_range(domain):
         level += 1
 
     if level == 0:
-        return { "skip": True }
+        return {"skip": True}
 
-    return { "level": level, "value_range": value_range}
+    return {"level": level, "value_range": value_range}
+
 
 def domain_label_list(domain):
     size = domain.GetNumberOfEntries()
     values = []
     for i in range(size):
-        values.append({
-            "text": domain.GetEntryText(i),
-            "value": domain.GetEntryValue(i),
-        })
+        values.append(
+            {
+                "text": domain.GetEntryText(i),
+                "value": domain.GetEntryValue(i),
+            }
+        )
 
-    return { "name": "List", "values": values }
+    return {"name": "List", "values": values}
+
 
 DOMAIN_HANDLERS = {
     "Boolean": domain_bool,
@@ -88,6 +97,7 @@ DOMAIN_HANDLERS = {
 def proxy_type(proxy):
     group, name = proxy.GetXMLGroup(), proxy.GetXMLName()
     return f"{group}__{name}"
+
 
 def property_domains_yaml(property):
     domains = []
@@ -103,11 +113,11 @@ def property_domains_yaml(property):
         if domain_type is None:
             print(f"Don't know how to handle domain: {domain_class}")
         elif domain_class in DOMAIN_DEBUG:
-            print("~"*40)                       # <<< DEBUG
-            print(domain_class)                 # <<< DEBUG
-            print("~"*40)                       # <<< DEBUG
-            for method_name in dir(domain):     # <<< DEBUG
-                if method_name[0] != "_":       # <<< DEBUG
+            print("~" * 40)  # <<< DEBUG
+            print(domain_class)  # <<< DEBUG
+            print("~" * 40)  # <<< DEBUG
+            for method_name in dir(domain):  # <<< DEBUG
+                if method_name[0] != "_":  # <<< DEBUG
                     print(f" > {method_name}")  # <<< DEBUG
         elif DOMAIN_HANDLERS.get(domain_type) is not None:
             domain_entry = {
@@ -134,7 +144,6 @@ def property_yaml(property):
         or property.GetIsInternal()
     ):
         return {}
-
 
     if property.GetXMLLabel():
         property_definition["_label"] = property.GetXMLLabel()
