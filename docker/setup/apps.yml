@@ -17,7 +17,7 @@ PyWebVue: # Default app under /index.html
     - --server
     - --data
     - /data
-Visualizer: # /Visualizer.html
+Visualizer: # /Visualizer.html or /?name=Visualizer&data=...
   app: pv-visualizer
   cmd:
     - /opt/paraview/bin/pvpython
@@ -33,4 +33,4 @@ Visualizer: # /Visualizer.html
     - ${secret}
     - --server
     - --data
-    - ${data}
+    - ${data} # <-- come from url(data=...)

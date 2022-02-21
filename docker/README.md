@@ -1,15 +1,7 @@
-## Building the server directory
+## Building paraview-visualizer docker image
 
-The **server** directory capture all the key elements of your application and can be used with our generic docker image.
-
-To generate that directory, just run the **scripts/build_server.sh** script.
-
-## Building your docker image
-
-Your docker image is simply bundling the **server** directory into a docker image to simplify possible deployment.
-
-To generate that image, just run the **scripts/build_image.sh** script.
+`./docker/scripts/build_image.sh`
 
 ## Running your bundle
 
-Just run either `scripts/run_server.sh` or `scripts/run_image.sh` and open your browser to `http://localhost:8080/visualizer.html`
+`./docker/scripts/run_image.sh` and open your browser to `http://localhost:8080/` or if you want to customize the starting directory `http://localhost:8080/?name=Visualizer&data=/data/sub-path-from-your-$home`

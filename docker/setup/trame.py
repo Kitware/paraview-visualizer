@@ -1,3 +1,4 @@
+# This file is part of ParaView 5.10.1+
 import paraview.web.venv # noqa
 import importlib
 import os
