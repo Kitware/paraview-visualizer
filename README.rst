@@ -18,7 +18,7 @@ Web frontend to ParaView
 
 
 Development
-----------
+------------
 Build and install the Vue components
 
 .. code-block:: console
@@ -49,7 +49,7 @@ Run the application using `ParaView: pvpython <https://www.paraview.org/>`_ exec
 
 
 Run application
----------------
+----------------
 
 Create a virtual environment to use with your `ParaView 5.10.1+ <https://www.paraview.org/download/>`_
 
