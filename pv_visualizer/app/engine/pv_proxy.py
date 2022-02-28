@@ -20,11 +20,12 @@ DOMAIN_TYPES = {
     "vtkSMDoubleRangeDomain": "Range",
     "vtkSMIntRangeDomain": "Range",
     "vtkSMEnumerationDomain": "LabelList",
+    "vtkSMRepresentationTypeDomain": "RepresentationList",
+    # ----
     # ----
     "vtkSMDataTypeDomain": "xxxxxxxxxxxxxxxx",
     "vtkSMProxyListDomain": "xxxxxxxxxxxxxxx",
     "vtkSMInputArrayDomain": "xxxxxxxxxxxxxx",
-    "vtkSMRepresentationTypeDomain": "xxxxxx",
     "vtkSMProxyGroupDomain": "xxxxxxxxxxxxxx",
     "vtkSMDataAssemblyDomain": "xxxxxxxxxxxx",
     "vtkSMRepresentedArrayListDomain": "xxxx",
@@ -84,11 +85,25 @@ def domain_label_list(domain):
 
     return {"name": "List", "values": values}
 
+def domain_rep_list(domain):
+    size = domain.GetNumberOfStrings()
+    values = []
+    for i in range(size):
+        values.append(
+            {
+                "text": domain.GetString(i),
+                "value": domain.GetString(i),
+            }
+        )
+    print("domain_rep_list", values)
+    return {"name": "List", "type": "LabelList", "values": values}
+
 
 DOMAIN_HANDLERS = {
     "Boolean": domain_bool,
     "Range": domain_range,
-    "LabelList": domain_label_list
+    "LabelList": domain_label_list,
+    "RepresentationList": domain_rep_list,
     # "ProxyBuilder": [""],
     # "FieldSelector": ["property", "location", "size", "isA"],
 }
