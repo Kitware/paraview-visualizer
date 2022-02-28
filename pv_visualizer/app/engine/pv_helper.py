@@ -10,6 +10,7 @@ except:
     servermanager = None
 
 PENDING = True
+HELPER = None
 
 
 class PVObjectFactory:
@@ -40,7 +41,16 @@ def proxy_pull(pv_proxy, si_item):
         # Custom handling for proxy
         property_class = pv_property.GetClassName()
         if property_class in ["vtkSMProxyProperty", "vtkSMInputProperty"]:
-            print(f"Need to handle proxy for {name} of proxy {pv_proxy.GetXMLName()}")
+            value = []
+            size = pv_property.GetNumberOfProxies()
+            for i in range(size):
+                proxy = pv_property.GetProxy(i)
+                value.append(HELPER.handle_proxy(proxy))
+
+            if size > 1:
+                si_item.set_property(name, value)
+            elif len(value):
+                si_item.set_property(name, value[0])
         else:
             size = pv_property.GetNumberOfElements()
             if size == 0:
@@ -79,8 +89,20 @@ def proxy_push(simput_item):
                 after = property.GetElement(i)
                 if before != after:
                     change_count += 1
+        elif property.GetClassName() in ["vtkSMInputProperty", "vtkSMProxyProperty"]:
+            if hasattr(value, "SMProxy"):
+                value = value.SMProxy
+            before = property.GetProxy(0)
+            property.SetProxy(0, value)
+            after = property.GetProxy(0)
+            if before != after:
+                change_count += 1
         else:
-            before = property.GetElement(0)
+            try:
+                before = property.GetElement(0)
+            except AttributeError as e:
+                print("Error", property.GetClassName())
+                raise(e)
             property.SetElement(0, value)
             after = property.GetElement(0)
             if before != after:
@@ -101,6 +123,10 @@ class ProxyManagerHelper:
         self._factory = PVObjectFactory()
         self._pxm = None
         self._ui_manager = None
+        #
+        global HELPER
+        HELPER = self
+        pv_proxy.set_helper(self)
 
     @property
     def factory(self):

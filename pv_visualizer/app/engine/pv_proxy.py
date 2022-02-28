@@ -21,10 +21,10 @@ DOMAIN_TYPES = {
     "vtkSMIntRangeDomain": "Range",
     "vtkSMEnumerationDomain": "LabelList",
     "vtkSMRepresentationTypeDomain": "RepresentationList",
+    "vtkSMProxyListDomain": "ProxyListDomain",
     # ----
     # ----
     "vtkSMDataTypeDomain": "xxxxxxxxxxxxxxxx",
-    "vtkSMProxyListDomain": "xxxxxxxxxxxxxxx",
     "vtkSMInputArrayDomain": "xxxxxxxxxxxxxx",
     "vtkSMProxyGroupDomain": "xxxxxxxxxxxxxx",
     "vtkSMDataAssemblyDomain": "xxxxxxxxxxxx",
@@ -43,6 +43,12 @@ DOMAIN_TYPES = {
 }
 
 DOMAIN_DEBUG = {}
+
+PROXY_TO_SIMPUT_ID = None
+
+def set_helper(helper):
+    global PROXY_TO_SIMPUT_ID
+    PROXY_TO_SIMPUT_ID = helper.handle_proxy
 
 
 def domain_bool(domain):
@@ -95,7 +101,19 @@ def domain_rep_list(domain):
                 "value": domain.GetString(i),
             }
         )
-    print("domain_rep_list", values)
+    return {"name": "List", "type": "LabelList", "values": values}
+
+def domain_proxy_list(domain):
+    size = domain.GetNumberOfProxies()
+    values = []
+    for i in range(size):
+        proxy = domain.GetProxy(i)
+        values.append(
+            {
+                "text": proxy.GetXMLLabel(),
+                "value": PROXY_TO_SIMPUT_ID(proxy),
+            }
+        )
     return {"name": "List", "type": "LabelList", "values": values}
 
 
@@ -104,6 +122,7 @@ DOMAIN_HANDLERS = {
     "Range": domain_range,
     "LabelList": domain_label_list,
     "RepresentationList": domain_rep_list,
+    "ProxyListDomain": domain_proxy_list,
     # "ProxyBuilder": [""],
     # "FieldSelector": ["property", "location", "size", "isA"],
 }
@@ -213,6 +232,12 @@ def proxy_yaml(proxy):
 
 
 def property_xml(property):
+    print()
+    if property.IsA("vtkSMProxyProperty"):
+        container = ET.Element("col")
+        container.append(ET.Element("input", name=property.GetXMLName()))
+        container.append(ET.Element("proxy", name=property.GetXMLName()))
+        return container
     return ET.Element("input", name=property.GetXMLName())
 
 
