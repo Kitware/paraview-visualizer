@@ -1,6 +1,8 @@
-import sys
 import yaml
 import xml.etree.ElementTree as ET
+
+from .pv_core import unwrap
+from .domains import get_domain_widget, set_helper
 
 try:
     from paraview import servermanager
@@ -13,140 +15,6 @@ PROPERTY_TYPES = {
     "vtkSMStringVectorProperty": "string",
     "vtkSMProxyProperty": "proxy",
     "vtkSMInputProperty": "proxy",
-}
-
-DOMAIN_TYPES = {
-    "vtkSMBooleanDomain": "Boolean",
-    "vtkSMDoubleRangeDomain": "Range",
-    "vtkSMIntRangeDomain": "Range",
-    "vtkSMEnumerationDomain": "LabelList",
-    "vtkSMRepresentationTypeDomain": "RepresentationList",
-    "vtkSMProxyListDomain": "ProxyListDomain",
-    # ----
-    "vtkSMArrayListDomain": "ArrayListDomain",
-    # ----
-    "vtkSMDataTypeDomain": "xxxxxxxxxxxxxxxx",
-    "vtkSMInputArrayDomain": "xxxxxxxxxxxxxx",
-    "vtkSMProxyGroupDomain": "xxxxxxxxxxxxxx",
-    "vtkSMDataAssemblyDomain": "xxxxxxxxxxxx",
-    "vtkSMRepresentedArrayListDomain": "xxxx",
-    "vtkSMBoundsDomain": "xxxxxxxxxxxxxxxxxx",
-    "vtkSMArrayRangeDomain": "xxxxxxxxxxxxxx",
-    "vtkSMNumberOfComponentsDomain": "xxxxxx",
-    "vtkSMRangedTransferFunctionDomain": "xx",
-    "vtkSMMaterialDomain": "xxxxxxxxxxxxxxxx",
-    "vtkSMArraySelectionDomain": "xxxxxxxxxx",
-    # ----
-    "1": "ProxyBuilder",
-    "2": "FieldSelector",
-    "3": "BoundsCenter",
-}
-
-DOMAIN_DEBUG = {}
-
-PROXY_TO_SIMPUT_ID = None
-
-def set_helper(helper):
-    global PROXY_TO_SIMPUT_ID
-    PROXY_TO_SIMPUT_ID = helper.handle_proxy
-
-
-def domain_bool(domain):
-    return {}
-
-
-def domain_range(domain):
-    if domain.GetClassName() == "vtkSMDoubleRangeDomain":
-        _max = sys.float_info.max
-    else:
-        _max = sys.maxsize
-
-    level = 0
-    value_range = [-_max, _max]
-
-    if domain.GetMinimumExists(0):
-        value_range[0] = domain.GetMinimum(0)
-        level += 1
-
-    if domain.GetMaximumExists(0):
-        value_range[1] = domain.GetMaximum(0)
-        level += 1
-
-    if level == 0:
-        return {"skip": True}
-
-    return {"level": level, "value_range": value_range}
-
-
-def domain_label_list(domain):
-    size = domain.GetNumberOfEntries()
-    values = []
-    for i in range(size):
-        values.append(
-            {
-                "text": domain.GetEntryText(i),
-                "value": domain.GetEntryValue(i),
-            }
-        )
-
-    return {"name": "List", "values": values}
-
-def domain_rep_list(domain):
-    size = domain.GetNumberOfStrings()
-    values = []
-    for i in range(size):
-        values.append(
-            {
-                "text": domain.GetString(i),
-                "value": domain.GetString(i),
-            }
-        )
-    return {"name": "List", "type": "LabelList", "values": values}
-
-def domain_proxy_list(domain):
-    size = domain.GetNumberOfProxies()
-    values = []
-    for i in range(size):
-        proxy = domain.GetProxy(i)
-        values.append(
-            {
-                "text": proxy.GetXMLLabel(),
-                "value": PROXY_TO_SIMPUT_ID(proxy),
-            }
-        )
-    return {"name": "List", "type": "LabelList", "values": values}
-
-def domain_array_list(domain):
-    """FIXME need to be at runtime not at definition"""
-    size = domain.GetNumberOfStrings()
-    values = []
-    for i in range(size):
-        field_name = domain.GetString(i)
-        value = [
-            "",
-            "",
-            "",
-            f"{domain.GetAttributeType()}",
-            field_name
-        ]
-        values.append(
-            {
-                "text": field_name,
-                "value": value,
-            }
-        )
-    # FIXME can NOT be static
-    return {"name": "List", "type": "LabelList", "values": values}
-
-DOMAIN_HANDLERS = {
-    "Boolean": domain_bool,
-    "Range": domain_range,
-    "LabelList": domain_label_list,
-    "RepresentationList": domain_rep_list,
-    "ProxyListDomain": domain_proxy_list,
-    "ArrayListDomain": domain_array_list,
-    # "ProxyBuilder": [""],
-    # "FieldSelector": ["property", "location", "size", "isA"],
 }
 
 
@@ -164,25 +32,17 @@ def property_domains_yaml(property):
         domain = iter.GetDomain()
         domain_class = domain.GetClassName()
         domain_name = domain.GetXMLName()
-        domain_type = DOMAIN_TYPES.get(domain_class)
 
-        if domain_type is None:
-            print(f"Don't know how to handle domain: {domain_class}")
-        elif domain_class in DOMAIN_DEBUG:
-            print("~" * 40)  # <<< DEBUG
-            print(domain_class)  # <<< DEBUG
-            print("~" * 40)  # <<< DEBUG
-            for method_name in dir(domain):  # <<< DEBUG
-                if method_name[0] != "_":  # <<< DEBUG
-                    print(f" > {method_name}")  # <<< DEBUG
-        elif DOMAIN_HANDLERS.get(domain_type) is not None:
-            domain_entry = {
-                "name": domain_name,
-                "type": domain_type,
-                **DOMAIN_HANDLERS[domain_type](domain),
-            }
-            if domain_entry.get("skip") is None:
-                domains.append(domain_entry)
+        keep, name, widget = get_domain_widget(domain)
+        domain_entry = {
+            "name": name,
+            "type": "ParaViewDomain",
+            "pv_class": domain_class,
+            "pv_name": domain_name,
+            "widget": widget,
+        }
+        if keep:
+            domains.append(domain_entry)
 
         # move to next domain
         iter.Next()
@@ -246,10 +106,6 @@ def proxy_yaml(proxy):
         proxy_definition.update(property_yaml(property))
         prop_iter.Next()
 
-    # print("#"*80)
-    # print(yaml.dump({type_proxy: proxy_definition}))
-    # print("#"*80)
-
     return yaml.dump({type_proxy: proxy_definition})
 
 
@@ -280,8 +136,7 @@ def should_skip(property):
 
 
 def proxy_ui(proxy):
-    if hasattr(proxy, "SMProxy"):
-        proxy = proxy.SMProxy
+    proxy = unwrap(proxy)
 
     # 1) fill groups
     prop_to_group = {}

@@ -2,6 +2,7 @@ from trame import controller as ctrl
 from simput.core import Proxy
 
 from . import pv_proxy
+from .pv_core import unwrap
 
 try:
     from paraview import simple, servermanager
@@ -30,9 +31,7 @@ class PVObjectFactory:
 def proxy_pull(pv_proxy, si_item):
     _id = si_item.id
     for name in si_item.list_property_names():
-        pv_property = pv_proxy.GetProperty(name)
-        if hasattr(pv_property, "SMProperty"):
-            pv_property = pv_property.SMProperty
+        pv_property = unwrap(pv_proxy.GetProperty(name))
 
         if pv_property is None:
             print(f"No property {name} for proxy {pv_proxy.GetXMLName()}")
@@ -76,7 +75,7 @@ def proxy_push(simput_item):
     for name in simput_item.edited_property_names:
         value = simput_item[name]
         if isinstance(value, Proxy):
-            value = value.object if value else None
+            value = unwrap(value.object if value else None)
         elif value is None:
             continue
 
@@ -90,8 +89,6 @@ def proxy_push(simput_item):
                 if before != after:
                     change_count += 1
         elif property.GetClassName() in ["vtkSMInputProperty", "vtkSMProxyProperty"]:
-            if hasattr(value, "SMProxy"):
-                value = value.SMProxy
             before = property.GetProxy(0)
             property.SetProxy(0, value)
             after = property.GetProxy(0)
@@ -102,7 +99,7 @@ def proxy_push(simput_item):
                 before = property.GetElement(0)
             except AttributeError as e:
                 print("Error", property.GetClassName())
-                raise(e)
+                raise (e)
             property.SetElement(0, value)
             after = property.GetElement(0)
             if before != after:
@@ -135,17 +132,6 @@ class ProxyManagerHelper:
     def set_simput(self, pxm, ui):
         self._pxm = pxm
         self._ui_manager = ui
-
-    def mapIdToProxy(self, poxy_id):
-        try:
-            poxy_id = int(poxy_id)
-        except:
-            return None
-        if poxy_id <= 0:
-            return None
-        return servermanager._getPyProxy(
-            servermanager.ActiveConnection.Session.GetRemoteObject(poxy_id)
-        )
 
     def debug(self, msg):
         if self._debug == True:
@@ -198,6 +184,7 @@ class ProxyManagerHelper:
         for sub_p in sub_proxies:
             self._proxy_ensure_definition(sub_p)
 
+        # print("XML:ui")
         # print('#'*80)
         # print(pv_proxy.proxy_ui(proxy))
         # print('#'*80)
@@ -208,16 +195,19 @@ class ProxyManagerHelper:
         self._ui_manager.load_language(yaml_content=yaml_txt)
         self._ui_manager.load_ui(xml_content=pv_proxy.proxy_ui(proxy))
 
+        # print("YAML")
+        # print('#'*80)
+        # print(yaml_txt)
+        # print('#'*80)
+
     def _proxy_ensure_binding(self, proxy):
+        proxy = unwrap(proxy)
         proxy_id = proxy.GetGlobalIDAsString()
         if proxy_id in self._id_pv_to_simput:
             return
 
         # Reserve spot to prevent any recursive loop
         self._id_pv_to_simput[proxy_id] = PENDING
-
-        if hasattr(proxy, "SMProxy"):
-            proxy = servermanager._getPyProxy(proxy)
 
         # Look first on our dependencies
         sub_proxies = self._proxy_extract_sub(proxy)

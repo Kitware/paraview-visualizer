@@ -4,14 +4,8 @@ from trame import Singleton, state, controller as ctrl
 
 from simput.core import ProxyManager, UIManager, ProxyDomainManager
 from simput.ui.web import VuetifyResolver
-from simput.domains import register_domains
-from simput.values import register_values
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
-# Simput registrations
-register_domains()
-register_values()
 
 from .pv_helper import ProxyManagerHelper
 
@@ -42,18 +36,9 @@ class ParaviewProxyManager:
         ctrl.on_data_change.add(self.on_active_change)
         ctrl.on_delete = self.on_proxy_delete
 
-        # TMP - fake models
-        self._pxm.load_model(yaml_file=os.path.join(BASE_DIR, "model/sample.yaml"))
-        self._ui_manager.load_language(
-            yaml_file=os.path.join(BASE_DIR, "model/sample.yaml")
-        )
-        # self._ui_manager.load_ui(xml_file=os.path.join(BASE_DIR, "model/soil_ui.xml"))
-
-        source = self._pxm.create("Source")
-        representation = self._pxm.create("Representation")
-
-        state.source_id = source.id
-        state.representation_id = representation.id
+        # No active simput proxy just yet
+        state.source_id = 0
+        state.representation_id = 0
 
     @property
     def pxm(self):

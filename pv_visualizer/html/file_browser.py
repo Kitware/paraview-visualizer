@@ -9,6 +9,7 @@ try:
 except:
     simple = None
 
+
 class ParaViewPathResolver:
     def __init__(
         self,
@@ -49,13 +50,12 @@ class ParaViewPathResolver:
     def handleSingleRoot(self, baseDirectory, relativeDir, startPath=None):
         if simple is None:
             return {
-            "label": "No ParaView",
-            "files": [],
-            "dirs": [],
-            "groups": [],
-            "path": "",
-        }
-
+                "label": "No ParaView",
+                "files": [],
+                "dirs": [],
+                "groups": [],
+                "path": "",
+            }
 
         path = startPath or [self.rootName]
         if len(relativeDir) > len(self.rootName):
