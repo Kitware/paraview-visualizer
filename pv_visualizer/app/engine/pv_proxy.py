@@ -23,6 +23,7 @@ DOMAIN_TYPES = {
     "vtkSMRepresentationTypeDomain": "RepresentationList",
     "vtkSMProxyListDomain": "ProxyListDomain",
     # ----
+    "vtkSMArrayListDomain": "ArrayListDomain",
     # ----
     "vtkSMDataTypeDomain": "xxxxxxxxxxxxxxxx",
     "vtkSMInputArrayDomain": "xxxxxxxxxxxxxx",
@@ -30,7 +31,6 @@ DOMAIN_TYPES = {
     "vtkSMDataAssemblyDomain": "xxxxxxxxxxxx",
     "vtkSMRepresentedArrayListDomain": "xxxx",
     "vtkSMBoundsDomain": "xxxxxxxxxxxxxxxxxx",
-    "vtkSMArrayListDomain": "xxxxxxxxxxxxxxx",
     "vtkSMArrayRangeDomain": "xxxxxxxxxxxxxx",
     "vtkSMNumberOfComponentsDomain": "xxxxxx",
     "vtkSMRangedTransferFunctionDomain": "xx",
@@ -116,6 +116,27 @@ def domain_proxy_list(domain):
         )
     return {"name": "List", "type": "LabelList", "values": values}
 
+def domain_array_list(domain):
+    """FIXME need to be at runtime not at definition"""
+    size = domain.GetNumberOfStrings()
+    values = []
+    for i in range(size):
+        field_name = domain.GetString(i)
+        value = [
+            "",
+            "",
+            "",
+            f"{domain.GetAttributeType()}",
+            field_name
+        ]
+        values.append(
+            {
+                "text": field_name,
+                "value": value,
+            }
+        )
+    # FIXME can NOT be static
+    return {"name": "List", "type": "LabelList", "values": values}
 
 DOMAIN_HANDLERS = {
     "Boolean": domain_bool,
@@ -123,6 +144,7 @@ DOMAIN_HANDLERS = {
     "LabelList": domain_label_list,
     "RepresentationList": domain_rep_list,
     "ProxyListDomain": domain_proxy_list,
+    "ArrayListDomain": domain_array_list,
     # "ProxyBuilder": [""],
     # "FieldSelector": ["property", "location", "size", "isA"],
 }
@@ -232,13 +254,29 @@ def proxy_yaml(proxy):
 
 
 def property_xml(property):
-    print()
     if property.IsA("vtkSMProxyProperty"):
         container = ET.Element("col")
         container.append(ET.Element("input", name=property.GetXMLName()))
         container.append(ET.Element("proxy", name=property.GetXMLName()))
         return container
     return ET.Element("input", name=property.GetXMLName())
+
+
+def should_skip(property):
+    if property.GetXMLName() in ["Input"]:
+        # Reserved prop name without UI
+        return True
+
+    if property.GetIsInternal():
+        # print("skip internal")
+        return True
+
+    visibility = property.GetPanelVisibility()
+    if visibility in [None, "never"]:
+        # print("skip visibility", visibility)
+        return True
+
+    return False
 
 
 def proxy_ui(proxy):
@@ -253,6 +291,10 @@ def proxy_ui(proxy):
         group = proxy.GetPropertyGroup(g_idx)
         p_size = group.GetNumberOfProperties()
 
+        # skip groups
+        if group.GetPanelVisibility() in [None, "never"]:
+            continue
+
         xml_group = ET.Element("col")
         xml_group.append(
             ET.Element("text", attrib={"class": "text-h6"}, content=group.GetXMLLabel())
@@ -263,7 +305,8 @@ def proxy_ui(proxy):
         for p_idx in range(p_size):
             property = group.GetProperty(p_idx)
             prop_to_group[property] = group
-            xml_group.append(property_xml(property))
+            if not should_skip(property):
+                xml_group.append(property_xml(property))
 
     # 2) ordered list of xml elements
     group_used = set()
@@ -274,6 +317,10 @@ def proxy_ui(proxy):
     while not prop_iter.IsAtEnd():
         property = prop_iter.GetProperty()
         group = prop_to_group.get(property)
+
+        if should_skip(property):
+            prop_iter.Next()
+            continue
 
         if group is None:
             ordered_properties.append(property_xml(property))
