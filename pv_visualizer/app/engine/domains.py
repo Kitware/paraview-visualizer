@@ -1,22 +1,24 @@
 import sys
 from simput.core import ProxyDomain, PropertyDomain
-from .pv_core import unwrap, id_to_proxy
+from . import proxymanager, paraview
 
 # -----------------------------------------------------------------------------
 # General util functions
 # -----------------------------------------------------------------------------
 
-
-SIMPUT_HELPER = None
-
-
-def set_helper(helper):
-    global SIMPUT_HELPER
-    SIMPUT_HELPER = helper
+PV_PXM = None
 
 
-def pv_id_to_simput(pv_id):
-    return SIMPUT_HELPER.handle_proxy(id_to_proxy(pv_id))
+def ensure_pxm():
+    global PV_PXM
+    if PV_PXM is None:
+        PV_PXM = proxymanager.ParaviewProxyManager()
+
+
+def id_pv_to_simput(pv_id):
+    if PV_PXM is None:
+        ensure_pxm()
+    return PV_PXM.handle_proxy(paraview.id_to_proxy(pv_id))
 
 
 # -----------------------------------------------------------------------------
@@ -88,6 +90,17 @@ def domain_list_proxies(domain):
 
 
 # -----------------------------------------------------------------------------
+def domain_list_proxies_simput_ids(domain):
+    return [
+        {
+            "text": entry.get("text"),
+            "value": id_pv_to_simput(entry.get("value")),
+        }
+        for entry in domain_list_proxies(domain)
+    ]
+
+
+# -----------------------------------------------------------------------------
 def domain_list_arrays(domain):
     field_type = f"{domain.GetAttributeType()}"
     return [
@@ -118,49 +131,29 @@ def domain_unknown(domain):
 
 
 # -----------------------------------------------------------------------------
-# Transform helper
-# -----------------------------------------------------------------------------
-
-
-def transform_noop(property_domain, extract):
-    return extract
-
-
-# -----------------------------------------------------------------------------
-def transform_values_ids(property_domain, extract):
-    return [
-        {
-            "text": entry.get("text"),
-            "value": pv_id_to_simput(entry.get("value")),
-        }
-        for entry in extract
-    ]
-
-
-# -----------------------------------------------------------------------------
 # ParaView Domain class to extract helper
 # -----------------------------------------------------------------------------
 
 DOMAIN_TYPES = {
-    "vtkSMBooleanDomain": (domain_bool, transform_noop),
-    "vtkSMDoubleRangeDomain": (domain_range, transform_noop),
-    "vtkSMIntRangeDomain": (domain_range, transform_noop),
-    "vtkSMEnumerationDomain": (domain_list_entries, transform_noop),
-    "vtkSMRepresentationTypeDomain": (domain_list_strings, transform_noop),
-    "vtkSMProxyListDomain": (domain_list_proxies, transform_values_ids),
-    "vtkSMArrayListDomain": (domain_list_arrays, transform_noop),
+    "vtkSMBooleanDomain": (domain_bool),
+    "vtkSMDoubleRangeDomain": (domain_range),
+    "vtkSMIntRangeDomain": (domain_range),
+    "vtkSMEnumerationDomain": (domain_list_entries),
+    "vtkSMRepresentationTypeDomain": (domain_list_strings),
+    "vtkSMProxyListDomain": (domain_list_proxies_simput_ids),
+    "vtkSMArrayListDomain": (domain_list_arrays),
     # ------------------------------------------------
-    "vtkSMDataTypeDomain": (domain_unknown, transform_noop),
-    "vtkSMInputArrayDomain": (domain_unknown, transform_noop),
-    "vtkSMProxyGroupDomain": (domain_unknown, transform_noop),
-    "vtkSMDataAssemblyDomain": (domain_unknown, transform_noop),
-    "vtkSMRepresentedArrayListDomain": (domain_unknown, transform_noop),
-    "vtkSMBoundsDomain": (domain_unknown, transform_noop),
-    "vtkSMArrayRangeDomain": (domain_unknown, transform_noop),
-    "vtkSMNumberOfComponentsDomain": (domain_unknown, transform_noop),
-    "vtkSMRangedTransferFunctionDomain": (domain_unknown, transform_noop),
-    "vtkSMMaterialDomain": (domain_unknown, transform_noop),
-    "vtkSMArraySelectionDomain": (domain_unknown, transform_noop),
+    "vtkSMDataTypeDomain": (domain_unknown),
+    "vtkSMInputArrayDomain": (domain_unknown),
+    "vtkSMProxyGroupDomain": (domain_unknown),
+    "vtkSMDataAssemblyDomain": (domain_unknown),
+    "vtkSMRepresentedArrayListDomain": (domain_unknown),
+    "vtkSMBoundsDomain": (domain_unknown),
+    "vtkSMArrayRangeDomain": (domain_unknown),
+    "vtkSMNumberOfComponentsDomain": (domain_unknown),
+    "vtkSMRangedTransferFunctionDomain": (domain_unknown),
+    "vtkSMMaterialDomain": (domain_unknown),
+    "vtkSMArraySelectionDomain": (domain_unknown),
 }
 
 
@@ -172,11 +165,11 @@ DOMAIN_TYPES = {
 class ParaViewDomain(PropertyDomain):
     def __init__(self, _proxy, _property, _domain_manager=None, **kwargs):
         super().__init__(_proxy, _property, _domain_manager, **kwargs)
-        self._pv_proxy = unwrap(_proxy.object)
-        self._pv_property = unwrap(self._pv_proxy.GetProperty(_property))
+        self._pv_proxy = paraview.unwrap(_proxy.object)
+        self._pv_property = paraview.unwrap(self._pv_proxy.GetProperty(_property))
         self._pv_class = kwargs.get("pv_class")
         self._pv_name = kwargs.get("pv_name")
-        self._helpers = DOMAIN_TYPES.get(self._pv_class, domain_unknown)
+        self._available = DOMAIN_TYPES.get(self._pv_class, domain_unknown)
         self._pv_domain = None
 
         if self._pv_property is None:
@@ -206,7 +199,10 @@ class ParaViewDomain(PropertyDomain):
         return False
 
     def available(self):
-        values = self._helpers[1](self, self._helpers[0](self._pv_domain))
+        if self._pv_domain is None:
+            return []
+
+        values = self._available(self._pv_domain)
         print(f"{self._pv_class}::{self._pv_name}", values)
         return values
 
@@ -219,7 +215,10 @@ class ParaViewDomain(PropertyDomain):
 
 # -----------------------------------------------------------------------------
 
-ProxyDomain.register_property_domain("ParaViewDomain", ParaViewDomain)
+
+def register_domains():
+    ProxyDomain.register_property_domain("ParaViewDomain", ParaViewDomain)
+
 
 # -----------------------------------------------------------------------------
 # UI handling

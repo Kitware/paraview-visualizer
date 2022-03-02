@@ -1,8 +1,7 @@
 import yaml
 import xml.etree.ElementTree as ET
 
-from .pv_core import unwrap
-from .domains import get_domain_widget, set_helper
+from . import paraview, domains
 
 try:
     from paraview import servermanager
@@ -17,14 +16,23 @@ PROPERTY_TYPES = {
     "vtkSMInputProperty": "proxy",
 }
 
+# -----------------------------------------------------------------------------
+# Spec key
+# -----------------------------------------------------------------------------
+
 
 def proxy_type(proxy):
     group, name = proxy.GetXMLGroup(), proxy.GetXMLName()
     return f"{group}__{name}"
 
 
+# -----------------------------------------------------------------------------
+# Model generators
+# -----------------------------------------------------------------------------
+
+
 def property_domains_yaml(property):
-    domains = []
+    result = []
 
     iter = property.NewDomainIterator()
     iter.Begin()
@@ -33,7 +41,7 @@ def property_domains_yaml(property):
         domain_class = domain.GetClassName()
         domain_name = domain.GetXMLName()
 
-        keep, name, widget = get_domain_widget(domain)
+        keep, name, widget = domains.get_domain_widget(domain)
         domain_entry = {
             "name": name,
             "type": "ParaViewDomain",
@@ -42,12 +50,15 @@ def property_domains_yaml(property):
             "widget": widget,
         }
         if keep:
-            domains.append(domain_entry)
+            result.append(domain_entry)
 
         # move to next domain
         iter.Next()
 
-    return domains
+    return result
+
+
+# -----------------------------------------------------------------------------
 
 
 def property_yaml(property):
@@ -91,22 +102,8 @@ def property_yaml(property):
 
 
 # -----------------------------------------------------------------------------
-# External API
+# UI generators
 # -----------------------------------------------------------------------------
-
-
-def proxy_yaml(proxy):
-    type_proxy = proxy_type(proxy)
-
-    proxy_definition = {}
-    prop_iter = proxy.NewPropertyIterator()
-    prop_iter.Begin()
-    while not prop_iter.IsAtEnd():
-        property = prop_iter.GetProperty()
-        proxy_definition.update(property_yaml(property))
-        prop_iter.Next()
-
-    return yaml.dump({type_proxy: proxy_definition})
 
 
 def property_xml(property):
@@ -116,6 +113,9 @@ def property_xml(property):
         container.append(ET.Element("proxy", name=property.GetXMLName()))
         return container
     return ET.Element("input", name=property.GetXMLName())
+
+
+# -----------------------------------------------------------------------------
 
 
 def should_skip(property):
@@ -135,8 +135,30 @@ def should_skip(property):
     return False
 
 
+# -----------------------------------------------------------------------------
+# External API
+# -----------------------------------------------------------------------------
+
+
+def proxy_model(proxy):
+    type_proxy = proxy_type(proxy)
+
+    proxy_definition = {}
+    prop_iter = proxy.NewPropertyIterator()
+    prop_iter.Begin()
+    while not prop_iter.IsAtEnd():
+        property = prop_iter.GetProperty()
+        proxy_definition.update(property_yaml(property))
+        prop_iter.Next()
+
+    return yaml.dump({type_proxy: proxy_definition})
+
+
+# -----------------------------------------------------------------------------
+
+
 def proxy_ui(proxy):
-    proxy = unwrap(proxy)
+    proxy = paraview.unwrap(proxy)
 
     # 1) fill groups
     prop_to_group = {}
