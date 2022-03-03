@@ -85,7 +85,7 @@ class ParaviewProxyManager:
         state.representation_id = self.handle_proxy(representation)
 
     def on_proxy_delete(self, pv_id):
-        """FIXME as it is not working properly"""
+        """!!! THIS IS NOT WORKING !!!"""
         pv_view = simple.GetActiveView()
 
         s_id = self._id_pv_to_simput[pv_id]
@@ -163,9 +163,9 @@ class ParaviewProxyManager:
         self._ui_manager.load_ui(xml_content=ui_xml)
 
         # print("YAML")
-        # print('#'*80)
-        # print(yaml_txt)
-        # print('#'*80)
+        # print("#" * 80)
+        # print(model_yaml)
+        # print("#" * 80)
 
         # print("XML:ui")
         # print('#'*80)

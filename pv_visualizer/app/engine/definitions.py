@@ -30,6 +30,61 @@ def proxy_type(proxy):
 # Model generators
 # -----------------------------------------------------------------------------
 
+DECORATOR_ATTRS = [
+    "type",
+    "mode",
+    "exclude",
+    "index",
+    "name",
+    "property",
+    "value",
+    "values",
+    "inverse",
+    "number_of_components",
+]
+
+
+def xml_to_json(xml_elem, attr_list=DECORATOR_ATTRS):
+    entry = {}
+
+    for attr_name in attr_list:
+        attr_value = xml_elem.GetAttribute(attr_name)
+        if attr_value is not None:
+            entry[attr_name] = attr_value
+
+    size = xml_elem.GetNumberOfNestedElements()
+    if size:
+        children = []
+        entry["children"] = children
+        for i in range(size):
+            children.append(xml_to_json(xml_elem.GetNestedElement(i)))
+
+    return entry
+
+
+def property_widget_decorator_yaml(property):
+    hints = property.GetHints()
+    if hints is None:
+        return []
+
+    result = []
+    size = hints.GetNumberOfNestedElements()
+    for i in range(size):
+        xml_elem = hints.GetNestedElement(i)
+        if xml_elem.GetName() == "PropertyWidgetDecorator":
+            result.append(
+                {
+                    "name": "decorator",
+                    "type": "ParaViewDecoratorDomain",
+                    "properties": xml_to_json(xml_elem),
+                }
+            )
+
+    return result
+
+
+# -----------------------------------------------------------------------------
+
 
 def property_domains_yaml(property):
     result = []
@@ -96,7 +151,10 @@ def property_yaml(property):
         property_definition["size"] = size
 
     # Domains
-    property_definition["domains"] = property_domains_yaml(property)
+    property_definition["domains"] = [
+        *property_domains_yaml(property),
+        *property_widget_decorator_yaml(property),
+    ]
 
     return {property_name: property_definition}
 

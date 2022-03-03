@@ -1,6 +1,6 @@
 import sys
 from simput.core import ProxyDomain, PropertyDomain
-from . import proxymanager, paraview
+from . import proxymanager, paraview, decorators
 
 # -----------------------------------------------------------------------------
 # General util functions
@@ -216,8 +216,42 @@ class ParaViewDomain(PropertyDomain):
 # -----------------------------------------------------------------------------
 
 
+class ParaViewDecoratorDomain(PropertyDomain):
+    def __init__(self, _proxy, _property, _domain_manager=None, **kwargs):
+        super().__init__(_proxy, _property, _domain_manager, **kwargs)
+        self._decorator = decorators.get_decorator(
+            paraview.unwrap(_proxy.object),
+            kwargs.get("properties"),
+        )
+
+    def set_value(self):
+        # Do PV domain have API to set value?
+        return False
+
+    def available(self):
+        if self._decorator:
+            return {
+                "show": self._decorator.can_show(),
+                "enable": self._decorator.enable_widget(),
+            }
+
+        return {}
+
+    def valid(self, required_level=2):
+        if self._level < required_level:
+            return True
+        # What method to call on PV domain?
+        return True
+
+
+# -----------------------------------------------------------------------------
+
+
 def register_domains():
     ProxyDomain.register_property_domain("ParaViewDomain", ParaViewDomain)
+    ProxyDomain.register_property_domain(
+        "ParaViewDecoratorDomain", ParaViewDecoratorDomain
+    )
 
 
 # -----------------------------------------------------------------------------
