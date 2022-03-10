@@ -173,8 +173,8 @@ class ParaViewDomain(PropertyDomain):
         self._pv_domain = None
 
         if self._pv_property is None:
-            print(f"!> No property {_property} on proxy {self._pv_proxy.GetXMLName()}")
-            print("~" * 80)
+            # print(f"!> No property {_property} on proxy {self._pv_proxy.GetXMLName()}")
+            # print("~" * 80)
             return
 
         # Find PV domain instance

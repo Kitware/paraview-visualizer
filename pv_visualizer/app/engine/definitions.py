@@ -166,7 +166,7 @@ def property_yaml(property):
 
 def property_xml(property):
     if property.IsA("vtkSMProxyProperty"):
-        container = ET.Element("col")
+        container = ET.Element("col", attrib={"class": "pa-0"})
         container.append(ET.Element("input", name=property.GetXMLName()))
         container.append(ET.Element("proxy", name=property.GetXMLName()))
         return container
@@ -230,9 +230,11 @@ def proxy_ui(proxy):
         if group.GetPanelVisibility() in [None, "never"]:
             continue
 
-        xml_group = ET.Element("col")
+        xml_group = ET.Element("col", attrib={"class": "px-0"})
         xml_group.append(
-            ET.Element("text", attrib={"class": "text-h6"}, content=group.GetXMLLabel())
+            ET.Element(
+                "text", attrib={"class": "text-h6 px-2"}, content=group.GetXMLLabel()
+            )
         )
         xml_group.append(ET.Element("divider", attrib={"class": "mb-2"}))
         xml_groups[group] = xml_group
@@ -242,6 +244,7 @@ def proxy_ui(proxy):
             prop_to_group[property] = group
             if not should_skip(property):
                 xml_group.append(property_xml(property))
+        xml_group.append(ET.Element("divider", attrib={"class": "mt-2"}))
 
     # 2) ordered list of xml elements
     group_used = set()

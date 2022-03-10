@@ -145,7 +145,11 @@ class GenericDecorator:
         if self._property is None:
             return not self._inverse
 
-        nb_elements = self._property.GetNumberOfElements()
+        try:
+            nb_elements = self._property.GetNumberOfElements()
+        except:
+            nb_elements = self._property.GetNumberOfProxies()
+
         if nb_elements == 0:
             status = len(self._values) == 1 and self._values[0] == "null"
             return (not status) if self._inverse else status
@@ -153,7 +157,7 @@ class GenericDecorator:
         if self._property.IsA("vtkSMProxyProperty"):
             if self._property.FindDomain("vtkSMProxyListDomain"):
                 status = False
-                active = self._property.GetProxy(0).GetXMLName()
+                active = self._property.GetUncheckedProxy(0).GetXMLName()
                 for value in self._values:
                     status = status or (value == active)
                 return (not status) if self._inverse else status
@@ -165,7 +169,7 @@ class GenericDecorator:
             ):
                 return (
                     (not self._inverse)
-                    if self._property.GetProxy(0) is None
+                    if self._property.GetUncheckedProxy(0) is None
                     else self._inverse
                 )
 
@@ -183,8 +187,8 @@ class GenericDecorator:
             if array_list_domain is None:
                 return False
 
-            array_association = int(self._property.GetElement(self._index - 1))
-            array_name = str(self._property.GetElement(self._index))
+            array_association = int(self._property.GetUncheckedElement(self._index - 1))
+            array_name = str(self._property.GetUncheckedElement(self._index))
             data_info = array_list_domain.GetInputDataInformation("Input")
 
             if data_info is None:
@@ -199,7 +203,7 @@ class GenericDecorator:
             status = array_components == self._nb_components
             return (not status) if self._inverse else status
 
-        value = str(self._property.GetElement(self._index))
+        value = str(self._property.GetUncheckedElement(self._index))
         status = False
         for v in self._values:
             status = status or (v == value)
@@ -213,9 +217,11 @@ class GenericDecorator:
             self._enabled = self._value_match()
 
     def can_show(self):
+        self._update_state()
         return self._visible
 
     def enable_widget(self):
+        self._update_state()
         return self._enabled
 
 
@@ -236,7 +242,7 @@ class InputDataTypeDecorator:
         property = self._proxy.GetProperty("Input") if self._proxy is not None else None
 
         if property is not None:
-            input_proxy = property.GetProxy(0)
+            input_proxy = property.GetUncheckedProxy(0)
             if input_proxy is None:
                 return False
             data_info = input_proxy.GetDataInformation()
@@ -262,6 +268,87 @@ class InputDataTypeDecorator:
             return self._process_state()
 
         return True
+
+
+# -----------------------------------------------------------------------------
+
+
+def operation_and(a, b):
+    return a and b
+
+
+def operation_or(a, b):
+    return a or b
+
+
+OPERATION_TYPES = {
+    "and": operation_and,
+    "or": operation_or,
+}
+
+OPERATION_TYPES_INITIAL = {
+    "and": True,
+    "or": False,
+}
+
+
+def to_decorator(proxy, entry):
+    _type = entry.get("type")
+    if _type in OPERATION_TYPES:
+        return ExpressionDecorator(proxy, entry)
+
+    return get_decorator(proxy, entry)
+
+
+class ExpressionDecorator:
+    def __init__(self, proxy, hint):
+        self._proxy = proxy
+        self._initial = OPERATION_TYPES_INITIAL[hint.get("type")]
+        self._operation = OPERATION_TYPES[hint.get("type")]
+        self._children = []
+        for entry in hint.get("children", []):
+            decorator = to_decorator(proxy, entry)
+            if decorator is not None:
+                self._children.append(decorator)
+
+    def can_show(self):
+        value = self._initial
+        for decorator in self._children:
+            value = self._operation(value, decorator.can_show())
+
+        return value
+
+    def enable_widget(self):
+        value = self._initial
+        for decorator in self._children:
+            value = self._operation(value, decorator.enable_widget())
+        return value
+
+
+class CompositeDecorator:
+    def __init__(self, proxy, hint):
+        import json
+
+        self._msg = json.dumps(hint, indent=2)
+        self._internal = to_decorator(proxy, hint["children"][0])
+
+    def can_show(self):
+        # print("~~~ CAN SHOW ~~~: ", self._internal.can_show())
+        # print(self._msg)
+        # print("~"*60)
+        return self._internal.can_show()
+
+    def enable_widget(self):
+        return self._internal.enable_widget()
+
+
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
 
 
 def get_decorator(proxy, config):

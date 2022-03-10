@@ -1,6 +1,12 @@
 from trame import Singleton, state, controller as ctrl
 
-from simput.core import ProxyManager, UIManager, ProxyDomainManager, Proxy
+from simput.core import (
+    ProxyManager,
+    UIManager,
+    ProxyDomainManager,
+    Proxy,
+    ProxyObjectAdapter,
+)
 from simput.ui.web import VuetifyResolver
 
 from . import paraview, domains, definitions
@@ -11,6 +17,134 @@ except:
     pass
 
 PENDING = True
+
+# -----------------------------------------------------------------------------
+# PV <=> Simput proxy state exchange
+# -----------------------------------------------------------------------------
+
+
+class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
+    @staticmethod
+    def commit(simput_proxy):
+        pv_proxy = simput_proxy.object
+        change_count = 0
+
+        for name in simput_proxy.edited_property_names:
+            value = simput_proxy[name]
+            if isinstance(value, Proxy):
+                value = paraview.unwrap(value.object if value else None)
+            elif value is None:
+                continue
+
+            property = pv_proxy.GetProperty(name)
+
+            if isinstance(value, (list, tuple)):
+                for i, v in enumerate(value):
+                    before = property.GetElement(i)
+                    property.SetElement(i, v)
+                    after = property.GetElement(i)
+                    if before != after:
+                        change_count += 1
+            elif property.GetClassName() in [
+                "vtkSMInputProperty",
+                "vtkSMProxyProperty",
+            ]:
+                before = property.GetProxy(0)
+                property.SetProxy(0, value)
+                after = property.GetProxy(0)
+                if before != after:
+                    change_count += 1
+            else:
+                try:
+                    before = property.GetElement(0)
+                except AttributeError as e:
+                    print("Error", property.GetClassName())
+                    raise (e)
+                property.SetElement(0, value)
+                after = property.GetElement(0)
+                if before != after:
+                    change_count += 1
+
+        if change_count:
+            pv_proxy.UpdateVTKObjects()
+
+        return change_count
+
+    @staticmethod
+    def reset(simput_proxy):
+        pv_proxy = simput_proxy.object
+        for name in simput_proxy.edited_property_names:
+            pv_property = pv_proxy.GetProperty(name)
+            if pv_property is not None:
+                pv_property.ClearUncheckedElements()
+
+    @staticmethod
+    def fetch(simput_proxy):
+        pv_proxy = simput_proxy.object
+        for name in simput_proxy.list_property_names():
+            pv_property = paraview.unwrap(pv_proxy.GetProperty(name))
+
+            if pv_property is None:
+                # print(f"No property {name} for proxy {pv_proxy.GetXMLName()}")
+                continue
+
+            # Custom handling for proxy
+            property_class = pv_property.GetClassName()
+            if property_class in ["vtkSMProxyProperty", "vtkSMInputProperty"]:
+                value = []
+                size = pv_property.GetNumberOfProxies()
+                for i in range(size):
+                    proxy = pv_property.GetProxy(i)
+                    value.append(PV_PXM.handle_proxy(proxy))
+
+                if size > 1:
+                    simput_proxy.set_property(name, value)
+                elif len(value):
+                    simput_proxy.set_property(name, value[0])
+            else:
+                size = pv_property.GetNumberOfElements()
+                if size == 0:
+                    continue
+
+                if size > 1:
+                    value = []
+                    for i in range(size):
+                        value.append(pv_property.GetElement(i))
+                else:
+                    value = pv_property.GetElement(0)
+
+                # print(f"{property_class}({size})::{name} = {value} ({type(value)})")
+                simput_proxy.set_property(name, value)
+
+        simput_proxy.commit()
+
+    @staticmethod
+    def update(simput_proxy, *property_names):
+        pv_proxy = simput_proxy.object
+
+        for name in property_names:
+            value = simput_proxy[name]
+            if isinstance(value, Proxy):
+                value = paraview.unwrap(value.object if value else None)
+            elif value is None:
+                continue
+
+            property = pv_proxy.GetProperty(name)
+
+            if isinstance(value, (list, tuple)):
+                for i, v in enumerate(value):
+                    property.SetUncheckedElement(i, v)
+            elif property.GetClassName() in [
+                "vtkSMInputProperty",
+                "vtkSMProxyProperty",
+            ]:
+                property.SetUncheckedProxy(0, value)
+            else:
+                property.SetUncheckedElement(0, value)
+
+
+PV_ADAPTER = ParaViewProxyObjectAdapter()
+# -----------------------------------------------------------------------------
 
 
 class PVObjectFactory:
@@ -189,11 +323,11 @@ class ParaviewProxyManager:
         # Take care of ourself
         proxy_type = definitions.proxy_type(proxy)
         self._factory.next(proxy)
-        simput_entry = self._pxm.create(proxy_type, _push_fn=proxy_push)
+        simput_entry = self._pxm.create(proxy_type, _object_adapter=PV_ADAPTER)
         self._id_pv_to_simput[proxy_id] = simput_entry.id
 
         # Read property from proxy and update simput entry
-        proxy_pull(proxy, simput_entry)
+        simput_entry.fetch()
 
         return simput_entry.id
 
@@ -207,93 +341,3 @@ PV_PXM = ParaviewProxyManager()
 # -----------------------------------------------------------------------------
 
 ctrl.on_active_proxy_change.add(ParaviewProxyManager().on_active_change)
-
-# -----------------------------------------------------------------------------
-# PV <=> Simput proxy state exchange
-# -----------------------------------------------------------------------------
-
-
-def proxy_pull(pv_proxy, si_item):
-    _id = si_item.id
-    for name in si_item.list_property_names():
-        pv_property = paraview.unwrap(pv_proxy.GetProperty(name))
-
-        if pv_property is None:
-            print(f"No property {name} for proxy {pv_proxy.GetXMLName()}")
-            continue
-
-        # Custom handling for proxy
-        property_class = pv_property.GetClassName()
-        if property_class in ["vtkSMProxyProperty", "vtkSMInputProperty"]:
-            value = []
-            size = pv_property.GetNumberOfProxies()
-            for i in range(size):
-                proxy = pv_property.GetProxy(i)
-                value.append(PV_PXM.handle_proxy(proxy))
-
-            if size > 1:
-                si_item.set_property(name, value)
-            elif len(value):
-                si_item.set_property(name, value[0])
-        else:
-            size = pv_property.GetNumberOfElements()
-            if size == 0:
-                continue
-
-            if size > 1:
-                value = []
-                for i in range(size):
-                    value.append(pv_property.GetElement(i))
-            else:
-                value = pv_property.GetElement(0)
-
-            # print(f"{property_class}({size})::{name} = {value} ({type(value)})")
-            si_item.set_property(name, value)
-
-    si_item.commit()
-
-
-# -----------------------------------------------------------------------------
-
-
-def proxy_push(simput_item):
-    pv_proxy = simput_item.object
-    change_count = 0
-
-    for name in simput_item.edited_property_names:
-        value = simput_item[name]
-        if isinstance(value, Proxy):
-            value = paraview.unwrap(value.object if value else None)
-        elif value is None:
-            continue
-
-        property = pv_proxy.GetProperty(name)
-
-        if isinstance(value, (list, tuple)):
-            for i, v in enumerate(value):
-                before = property.GetElement(i)
-                property.SetElement(i, v)
-                after = property.GetElement(i)
-                if before != after:
-                    change_count += 1
-        elif property.GetClassName() in ["vtkSMInputProperty", "vtkSMProxyProperty"]:
-            before = property.GetProxy(0)
-            property.SetProxy(0, value)
-            after = property.GetProxy(0)
-            if before != after:
-                change_count += 1
-        else:
-            try:
-                before = property.GetElement(0)
-            except AttributeError as e:
-                print("Error", property.GetClassName())
-                raise (e)
-            property.SetElement(0, value)
-            after = property.GetElement(0)
-            if before != after:
-                change_count += 1
-
-    if change_count:
-        pv_proxy.UpdateVTKObjects()
-
-    return change_count
