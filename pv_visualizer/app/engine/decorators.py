@@ -2,83 +2,11 @@ r"""
 ./Plugins/EmbossingRepresentations/pqExtrusionPropertyWidgetDecorator.cxx
 ./Qt/Components/pqCompositePropertyWidgetDecorator.cxx
 ./Qt/Components/pqPropertyWidgetDecorator.cxx
-./Qt/ApplicationComponents/pqShowWidgetDecorator.cxx
-./Qt/ApplicationComponents/pqOSPRayHidingDecorator.cxx
 ./Qt/ApplicationComponents/pqCTHArraySelectionDecorator.cxx
 ./Qt/ApplicationComponents/pqSessionTypeDecorator.cxx
 ./Qt/ApplicationComponents/pqSpreadSheetViewDecorator.cxx
 ./Qt/ApplicationComponents/pqAnimationShortcutDecorator.cxx
-./Qt/ApplicationComponents/pqBoolPropertyWidgetDecorator.cxx
-./Qt/ApplicationComponents/pqMultiComponentsDecorator.cxx
-./Qt/ApplicationComponents/pqInputDataTypeDecorator.cxx
-./Qt/ApplicationComponents/pqGenericPropertyWidgetDecorator.cxx
-./Qt/ApplicationComponents/pqEnableWidgetDecorator.cxx
 """
-
-# -----------------------------------------------------------------------------
-# PARAVIEW_SRC/VTKExtensions/FiltersGeneral/Resources/general_filters.xml
-# -----------------------------------------------------------------------------
-#   <PropertyWidgetDecorator type="InputDataTypeDecorator"
-#                            name="vtkHyperTreeGrid"
-#                            exclude="1"
-#                            mode="visibility"/>
-# -----------------------------------------------------------------------------
-#   <PropertyWidgetDecorator type="InputDataTypeDecorator"
-#                            name="vtkHyperTreeGrid"
-#                            mode="visibility"/>
-# -----------------------------------------------------------------------------
-#   <PropertyWidgetDecorator type="CompositeDecorator">
-#     <Expression type="or">
-#       <PropertyWidgetDecorator type="GenericDecorator"
-#                                mode="visibility"
-#                                property="ClipFunction"
-#                                value="Scalar" />
-#       <PropertyWidgetDecorator type="GenericDecorator"
-#                                mode="visibility"
-#                                property="HyperTreeGridClipFunction"
-#                                value="Scalar" />
-#     </Expression>
-#   </PropertyWidgetDecorator>
-# -----------------------------------------------------------------------------
-#   <PropertyWidgetDecorator type="CompositeDecorator">
-#     <Expression type="or">
-#       <PropertyWidgetDecorator type="GenericDecorator"
-#                                mode="visibility"
-#                                property="ClipFunction"
-#                                value="Scalar" />
-#       <PropertyWidgetDecorator type="GenericDecorator"
-#                                mode="visibility"
-#                                property="HyperTreeGridClipFunction"
-#                                value="Scalar" />
-#     </Expression>
-#   </PropertyWidgetDecorator>
-# -----------------------------------------------------------------------------
-#   <PropertyWidgetDecorator type="CompositeDecorator">
-#     <Expression type="and">
-#       <PropertyWidgetDecorator type="InputDataTypeDecorator"
-#                                mode="visibility"
-#                                exclude="1"
-#                                name="vtkHyperTreeGrid" />
-#       <PropertyWidgetDecorator type="GenericDecorator"
-#                                mode="visibility"
-#                                property="ClipFunction"
-#                                value="Scalar"
-#                                inverse="1" />
-#     </Expression>
-#   </PropertyWidgetDecorator>
-# -----------------------------------------------------------------------------
-#   <PropertyWidgetDecorator type="CompositeDecorator">
-#     <Expression type="and">
-#       <PropertyWidgetDecorator type="GenericDecorator" mode="visibility" property="ClipFunction" value="Box" inverse="0" />
-#       <PropertyWidgetDecorator type="GenericDecorator" mode="enabled_state" property="Invert" value="1" />
-#       <PropertyWidgetDecorator type="GenericDecorator" mode="enabled_state" property="PreserveInputCells" value="0" />
-#     </Expression>
-#   </PropertyWidgetDecorator>
-# -----------------------------------------------------------------------------
-
-# GenericDecorator
-# InputDataTypeDecorator
-# CompositeDecorator
 
 
 class DecoratorMode:
@@ -113,8 +41,7 @@ class GenericDecorator:
             return
 
         # index
-        if xml_element.get("index") is not None:
-            self._index = int(xml_element.get("index"))
+        self._index = int(xml_element.get("index", 0))
 
         # value / values
         value = xml_element.get("value")
@@ -207,6 +134,7 @@ class GenericDecorator:
         status = False
         for v in self._values:
             status = status or (v == value)
+
         return (not status) if self._inverse else status
 
     def _update_state(self):
@@ -333,9 +261,6 @@ class CompositeDecorator:
         self._internal = to_decorator(proxy, hint["children"][0])
 
     def can_show(self):
-        # print("~~~ CAN SHOW ~~~: ", self._internal.can_show())
-        # print(self._msg)
-        # print("~"*60)
         return self._internal.can_show()
 
     def enable_widget(self):
@@ -344,9 +269,86 @@ class CompositeDecorator:
 
 # -----------------------------------------------------------------------------
 
-# -----------------------------------------------------------------------------
+
+class BoolPropertyDecorator:
+    def __init__(self, proxy, hint):
+        _config = hint["children"][0]
+        #
+        self._proxy = proxy
+        self._bool_prop = True
+        self._property = self._proxy.GetProperty(_config["name"])
+        self._index = int(_config.get("index", "0"))
+        self._function = _config.get("function", "boolean")
+        self._value = _config.get("value", "0")
+
+    def _update(self):
+        _current_value = self._property.GetUncheckElement(self._index)
+        if self._function == "boolean":
+            self._bool_prop = int(_current_value) != 0
+        elif self._function == "boolean_invert":
+            self._bool_prop = int(_current_value) == 0
+        elif self._function == "greaterthan":
+            self._bool_prop = _current_value > float(self._value)
+        elif self._function == "lessthan":
+            self._bool_prop = _current_value < float(self._value)
+        elif self._function == "equals":
+            self._bool_prop = str(_current_value) == self._value
+        elif self._function == "contains":
+            self._bool_prop = self._value in str(_current_value)
+
+    @property
+    def value(self):
+        return self._bool_prop
+
+    def can_show(self):
+        return True
+
+    def enable_widget(self):
+        return True
+
+
+class ShowWidgetDecorator(BoolPropertyDecorator):
+    def can_show(self):
+        return self.value
+
+
+class EnableWidgetDecorator(BoolPropertyDecorator):
+    def enable_widget(self):
+        return self.value
+
 
 # -----------------------------------------------------------------------------
+
+
+class OSPRayHidingDecorator:
+    # Should be set at initialization
+    OSPRAY_AVAILABLE = True
+
+    def __init__(self, proxy, hint):
+        pass
+
+    def can_show(self):
+        return OSPRayHidingDecorator.OSPRAY_AVAILABLE
+
+    def enable_widget(self):
+        return True
+
+
+# -----------------------------------------------------------------------------
+
+
+class MultiComponentsDecorator:
+    def __init__(self, proxy, hint):
+        self._proxy = proxy
+        self._components = [int(v) for v in hint.get("components", "").split()]
+
+    def can_show(self):
+        info = self._proxy.GetArrayInformationForColorArray()
+        return info.GetNumberOfComponents() in self._components
+
+    def enable_widget(self):
+        return True
+
 
 # -----------------------------------------------------------------------------
 
@@ -355,3 +357,5 @@ def get_decorator(proxy, config):
     _type = config.get("type")
     if _type in globals():
         return globals()[_type](proxy, config)
+
+    print(f"~~~ no decorator for {_type} ~~~")

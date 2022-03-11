@@ -41,6 +41,8 @@ DECORATOR_ATTRS = [
     "values",
     "inverse",
     "number_of_components",
+    "function",
+    "components",
 ]
 
 

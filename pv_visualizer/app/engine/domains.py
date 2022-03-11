@@ -124,9 +124,16 @@ def domain_bool(domain):
 
 
 # -----------------------------------------------------------------------------
+UNKNOWN_DOMAINS = set()
+
+
 def domain_unknown(domain):
-    # print("domain_unknown", domain)
-    print("domain_unknown::class", domain.GetClassName())
+    class_name = domain.GetClassName()
+
+    if class_name not in UNKNOWN_DOMAINS:
+        UNKNOWN_DOMAINS.add(class_name)
+        print("domain_unknown::class", class_name)
+
     return {}
 
 
@@ -203,7 +210,7 @@ class ParaViewDomain(PropertyDomain):
             return []
 
         values = self._available(self._pv_domain)
-        print(f"{self._pv_class}::{self._pv_name}", values)
+        # print(f"{self._pv_class}::{self._pv_name}", values)
         return values
 
     def valid(self, required_level=2):
@@ -230,6 +237,11 @@ class ParaViewDecoratorDomain(PropertyDomain):
 
     def available(self):
         if self._decorator:
+            # DEBUG decorator state ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            # print(f"{self._property_name}")
+            # print(f"  > show({self._decorator.can_show()})")
+            # print(f"  > enable({self._decorator.enable_widget()})")
+            # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             return {
                 "show": self._decorator.can_show(),
                 "enable": self._decorator.enable_widget(),

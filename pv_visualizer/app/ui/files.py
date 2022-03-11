@@ -50,7 +50,15 @@ def load_file(files):
         # state file
         v1 = simple.Render()
         state_to_load = add_prefix(files)
-        simple.LoadState(state_to_load)
+        if state.settings_use_relative_path:
+            simple.LoadState(
+                state_to_load,
+                data_directory=str(Path(state_to_load).parent.resolve().absolute()),
+                restrict_to_data_directory=True,
+            )
+        else:
+            simple.LoadState(state_to_load)
+
         view = simple.GetActiveView()
         view.MakeRenderWindowInteractor(True)
         ctrl.view_replace(view)

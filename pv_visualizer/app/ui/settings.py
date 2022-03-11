@@ -99,7 +99,13 @@ def create_panel(container):
                     v_model=("view_background", VIEW_BG_HEX),
                     hide_mode_switch=True,
                 )
-
+            with create_card("State loading", reset_state_loading):
+                vuetify.VSwitch(
+                    label="Data directory relative to file",
+                    v_model=("settings_use_relative_path", True),
+                    classes="ma-0",
+                    hide_details=True,
+                )
             with create_card(
                 "Remote rendering", reset_remote_rendering, v_if=("settings_advanced",)
             ):
@@ -140,3 +146,7 @@ def reset_bg_color():
 def reset_remote_rendering():
     state.view_interactive_ratio = 1
     state.view_interactive_quality = 70
+
+
+def reset_state_loading():
+    state.settings_use_relative_path = True
