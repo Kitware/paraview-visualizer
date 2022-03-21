@@ -52,9 +52,20 @@ BTN_APPLY_STYLE = {
 
 BTN_RESET_STYLE = {
     **BTN_STYLE,
-    "classes": "mx-3",
+    "classes": "mx-2",
     "color": "orange",
 }
+
+BTN_ADVANCED_STYLE = {
+    "x_small": True,
+    "fab": True,
+    "elevation": 0,
+    "outlined": ("!ui_advanced",),
+    "color": ("ui_advanced ? 'primary' : 'grey lighten-1'",),
+}
+
+# Default advance mode off
+state.ui_advanced = False
 
 
 class ProxyEditor(Div):
@@ -92,6 +103,10 @@ class ProxyEditor(Div):
                             vuetify.VIcon(item.get("icon"))
 
                 vuetify.VSpacer()
+                with vuetify.VBtn(
+                    **BTN_ADVANCED_STYLE, click="ui_advanced = !ui_advanced"
+                ):
+                    vuetify.VIcon("mdi-dots-horizontal")
                 with vuetify.VBtn(**BTN_RESET_STYLE, click=ctrl.pxm_reset):
                     vuetify.VIcon("mdi-undo-variant")
                 with vuetify.VBtn(**BTN_APPLY_STYLE, click=ctrl.pxm_apply):

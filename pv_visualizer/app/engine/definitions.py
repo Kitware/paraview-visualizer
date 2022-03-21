@@ -85,6 +85,20 @@ def property_widget_decorator_yaml(property):
     return result
 
 
+def property_widget_decorator_advanced_yaml(property):
+    if property.GetPanelVisibility() == "advanced":
+        return [
+            {
+                "name": "decorator",
+                "type": "ParaViewDecoratorDomain",
+                "properties": {
+                    "type": "AdvancedDecorator",
+                },
+            }
+        ]
+    return []
+
+
 # -----------------------------------------------------------------------------
 
 
@@ -98,13 +112,14 @@ def property_domains_yaml(property):
         domain_class = domain.GetClassName()
         domain_name = domain.GetXMLName()
 
-        keep, name, widget = domains.get_domain_widget(domain)
+        keep, name, widget, ui_attributes = domains.get_domain_widget(domain)
         domain_entry = {
             "name": name,
             "type": "ParaViewDomain",
             "pv_class": domain_class,
             "pv_name": domain_name,
             "widget": widget,
+            "ui_attributes": ui_attributes,
         }
         if keep:
             result.append(domain_entry)
@@ -156,6 +171,7 @@ def property_yaml(property):
     property_definition["domains"] = [
         *property_domains_yaml(property),
         *property_widget_decorator_yaml(property),
+        *property_widget_decorator_advanced_yaml(property),
     ]
 
     return {property_name: property_definition}

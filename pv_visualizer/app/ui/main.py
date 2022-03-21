@@ -75,7 +75,7 @@ layout = SinglePageWithDrawer(
     on_ready=ctrl.view_update,
 )
 
-layout.root = simput.Simput(PXM.ui_manager, PXM.pdm, prefix="pxm")
+layout.root = simput.Simput(PXM.ui_manager, PXM.pdm, prefix="pxm", ref="simput")
 
 ctrl.pxm_apply = layout.root.apply
 ctrl.pxm_reset = layout.root.reset

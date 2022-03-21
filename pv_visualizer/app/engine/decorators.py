@@ -9,6 +9,19 @@ r"""
 """
 
 
+class AdvancedDecorator:
+    advance_mode = False
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def can_show(self):
+        return AdvancedDecorator.advance_mode
+
+    def enable_widget(self):
+        return True
+
+
 class DecoratorMode:
     VISIBILITY = "visibility"
     ENABLED_STATE = "enabled_state"

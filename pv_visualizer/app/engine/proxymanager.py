@@ -1,4 +1,5 @@
 from trame import Singleton, state, controller as ctrl
+from trame.internal.app import get_app_instance
 
 from simput.core import (
     ProxyManager,
@@ -10,6 +11,7 @@ from simput.core import (
 from simput.ui.web import VuetifyResolver
 
 from . import paraview, domains, definitions
+from .decorators import AdvancedDecorator
 
 try:
     from paraview import simple
@@ -206,6 +208,10 @@ class ParaviewProxyManager:
         if topic == "commit":
             ctrl.on_data_change()  # Trigger render
 
+    def reload_domains(self):
+        app = get_app_instance()
+        app.update(ref="simput", method="reload", args=["domain"])
+
     def on_active_change(self, **kwargs):
         source = simple.GetActiveSource()
         view = simple.GetActiveView()
@@ -341,3 +347,13 @@ PV_PXM = ParaviewProxyManager()
 # -----------------------------------------------------------------------------
 
 ctrl.on_active_proxy_change.add(ParaviewProxyManager().on_active_change)
+
+# ---------------------------------------------------------
+# Listeners
+# ---------------------------------------------------------
+
+
+@state.change("ui_advanced")
+def update_advanced(ui_advanced, **kwargs):
+    AdvancedDecorator.advance_mode = ui_advanced
+    PV_PXM.reload_domains()

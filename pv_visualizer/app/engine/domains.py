@@ -296,10 +296,25 @@ WIDGETS = {
 }
 
 
+def get_property_size(property):
+    if hasattr(property, "GetNumberOfElements"):
+        return property.GetNumberOfElements()
+
+    if hasattr(property, "GetNumberOfProxies"):
+        return property.GetNumberOfProxies()
+
+    return 0
+
+
 def get_domain_widget(domain):
     keep = True
     name = domain.GetXMLName()
     widget = WIDGETS.get(domain.GetClassName(), "sw-text-field")
+    ui_attributes = {}
+
+    # Try to adjust layout base on property size
+    if get_property_size(domain.GetProperty()) == 6:
+        ui_attributes["layout"] = "l2"
 
     if widget == "sw-select":
         name = "List"
@@ -307,4 +322,4 @@ def get_domain_widget(domain):
     if domain.GetClassName() in ["vtkSMDoubleRangeDomain", "vtkSMIntRangeDomain"]:
         keep = domain.GetMinimumExists(0) and domain.GetMaximumExists(0)
 
-    return keep, name, widget
+    return keep, name, widget, ui_attributes
