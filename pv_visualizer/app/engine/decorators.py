@@ -357,6 +357,8 @@ class MultiComponentsDecorator:
 
     def can_show(self):
         info = self._proxy.GetArrayInformationForColorArray()
+        if info is None:
+            return False
         return info.GetNumberOfComponents() in self._components
 
     def enable_widget(self):

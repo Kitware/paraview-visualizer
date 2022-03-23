@@ -17,7 +17,20 @@ scripts = ["__pv_visualizer/vue-pv_visualizer.umd.min.js"]
 vue_use = ["pv_visualizer"]
 
 # Uncomment to add vuetify config
-# vuetify = {}
+vuetify = {
+    "icons": {
+        "values": {
+            "pqEditColor": {"component": "pq-edit-color"},
+            "pqEditScalarBar": {"component": "pq-edit-scalar-bar"},
+            "pqFavorites": {"component": "pq-favorites"},
+            "pqResetRange": {"component": "pq-reset-range"},
+            "pqResetRangeCustom": {"component": "pq-reset-range-custom"},
+            "pqResetRangeTemporal": {"component": "pq-reset-range-temporal"},
+            "pqScalarBar": {"component": "pq-scalar-bar"},
+            "pqSeparateColorMap": {"component": "pq-separate-color-map"},
+        }
+    }
+}
 
 # Uncomment to add entries to the shared state
 # state = {}

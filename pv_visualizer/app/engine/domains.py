@@ -295,6 +295,22 @@ WIDGETS = {
     # "vtkSMArraySelectionDomain": "sw-text-field",
 }
 
+PANEL_WIDGETS = {
+    "color_selector": "sw-color-selector",
+    "color_selector_with_palette": "",
+    "ColorEditor": "sw-color-editor",
+    "data_assembly_editor": "",
+    "DataAssemblyEditor": "",
+    "display_representation_selector": "",
+    "FontEditor": "",
+    "input_selector": "",
+    "int_mask": "",
+    "InteractiveBox": "",
+    "proxy_editor": "",
+    "texture_selector": "",
+    "transfer_function_editor": "",
+}
+
 
 def get_property_size(property):
     if hasattr(property, "GetNumberOfElements"):
@@ -310,10 +326,23 @@ def get_domain_widget(domain):
     keep = True
     name = domain.GetXMLName()
     widget = WIDGETS.get(domain.GetClassName(), "sw-text-field")
+    property = domain.GetProperty()
     ui_attributes = {}
 
+    # Map custom PV widgets to simput widgets
+    if property.GetPanelWidget():
+        panel_widget = property.GetPanelWidget()
+        custom_widget = PANEL_WIDGETS.get(panel_widget)
+        if custom_widget:
+            widget = custom_widget
+            print(
+                f"Use custom widget {property.GetXMLName()} {panel_widget} => {widget}"
+            )
+        else:
+            print(f"Skip custom widget: {panel_widget}")
+
     # Try to adjust layout base on property size
-    if get_property_size(domain.GetProperty()) == 6:
+    if get_property_size(property) == 6:
         ui_attributes["layout"] = "l2"
 
     if widget == "sw-select":

@@ -85,6 +85,29 @@ def property_widget_decorator_yaml(property):
     return result
 
 
+def merge_decorators(*decorators):
+    if len(decorators) > 1:
+        return [
+            {
+                "name": "decorator",
+                "type": "ParaViewDecoratorDomain",
+                "properties": {
+                    "type": "CompositeDecorator",
+                    "children": [
+                        {
+                            "type": "and",
+                            "children": [
+                                decorator.get("properties") for decorator in decorators
+                            ],
+                        }
+                    ],
+                },
+            }
+        ]
+
+    return decorators
+
+
 def property_widget_decorator_advanced_yaml(property):
     if property.GetPanelVisibility() == "advanced":
         return [
@@ -170,8 +193,10 @@ def property_yaml(property):
     # Domains
     property_definition["domains"] = [
         *property_domains_yaml(property),
-        *property_widget_decorator_yaml(property),
-        *property_widget_decorator_advanced_yaml(property),
+        *merge_decorators(
+            *property_widget_decorator_yaml(property),
+            *property_widget_decorator_advanced_yaml(property),
+        ),
     ]
 
     return {property_name: property_definition}
@@ -195,9 +220,9 @@ def property_xml(property):
 
 
 def should_skip(property):
-    if property.GetXMLName() in ["Input"]:
-        # Reserved prop name without UI
-        return True
+    # if property.GetXMLName() in ["Input"]:
+    #     # Reserved prop name without UI
+    #     return True
 
     if property.GetIsInternal():
         # print("skip internal")
@@ -206,6 +231,23 @@ def should_skip(property):
     visibility = property.GetPanelVisibility()
     if visibility in [None, "never"]:
         # print("skip visibility", visibility)
+        return True
+
+    if property.IsA("vtkSMProxyProperty"):
+        selection_input = (
+            property.GetHints()
+            and property.GetHints().FindNestedElementByName("SelectionInput")
+        )
+        domain = None
+        domain_iter = property.NewDomainIterator()
+        domain_iter.Begin()
+        while not domain_iter.IsAtEnd():
+            domain = domain_iter.GetDomain()
+            domain_iter.Next()
+
+        if selection_input or (domain and domain.IsA("vtkSMProxyListDomain")):
+            return False
+
         return True
 
     return False
@@ -248,7 +290,14 @@ def proxy_ui(proxy):
         if group.GetPanelVisibility() in [None, "never"]:
             continue
 
+        # Create group
         xml_group = ET.Element("col", attrib={"class": "px-0"})
+
+        # Lookup custom group-widgets
+        group_elem = domains.PANEL_WIDGETS.get(group.GetPanelWidget())
+        if group_elem:
+            xml_group = ET.Element(group_elem, attrib={"label": group.GetXMLLabel()})
+
         xml_group.append(
             ET.Element(
                 "text", attrib={"class": "text-h6 px-2"}, content=group.GetXMLLabel()

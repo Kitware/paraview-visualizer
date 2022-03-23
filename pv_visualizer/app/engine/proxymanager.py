@@ -302,15 +302,18 @@ class ParaviewProxyManager:
         self._ui_manager.load_language(yaml_content=model_yaml)
         self._ui_manager.load_ui(xml_content=ui_xml)
 
-        # print("YAML")
-        # print("#" * 80)
-        # print(model_yaml)
-        # print("#" * 80)
+        # Generated YAML / XML ------------------------------------------------
+        # if proxy_type == "representations__GeometryRepresentation":
+        #     print("YAML")
+        #     print("#" * 80)
+        #     print(model_yaml)
+        #     print("#" * 80)
 
-        # print("XML:ui")
-        # print('#'*80)
-        # print(ui_xml)
-        # print('#'*80)
+        #     print("XML:ui")
+        #     print("#" * 80)
+        #     print(ui_xml)
+        #     print("#" * 80)
+        # Generated YAML / XML ------------------------------------------------
 
     def _proxy_ensure_binding(self, proxy):
         proxy = paraview.unwrap(proxy)

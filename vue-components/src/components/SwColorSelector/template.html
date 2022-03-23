@@ -1,0 +1,91 @@
+<v-col fluid style="position: relative" v-show="decorator.show">
+  ...Color custom widget...
+  <div style="position: absolute; right: 10px; top: -1px; z-index: 1;">
+    <v-btn v-if="allowRefresh" icon x-small @click="refresh">
+      <v-icon small>mdi-sync</v-icon>
+    </v-btn>
+    <v-btn v-if="help" icon x-small @click="showHelp = !showHelp">
+      <v-icon small>mdi-lifebuoy</v-icon>
+    </v-btn>
+    <v-btn v-if="computedSizeControl" icon x-small @click="addEntry">
+      <v-icon small>mdi-plus-circle-outline</v-icon>
+    </v-btn>
+  </div>
+
+  <v-row>
+    <v-col v-if="label && size != 1" class="py-0">
+      <div class="text-caption text--secondary">{{ label }}</div>
+      <v-divider />
+      <div v-if="help && showHelp" class="text-caption text--secondary">
+        {{ help }}
+      </div>
+    </v-col>
+  </v-row>
+  <v-row>
+    <v-col v-if="size == 1" class="pt-0 pb-1">
+      <v-text-field
+        :name="`${data().type}:${name}:${i}`"
+        :background-color="color()"
+        v-model="model"
+        @input="update()"
+        :label="label"
+        :hint="help"
+        dens
+        :rules="[rule]"
+        @blur="validate()"
+        @keydown.enter="validate()"
+        :persistent-hint="showHelp"
+        :hide-details="!showHelp || !help"
+
+        :disabled="!decorator.enable"
+      />
+    </v-col>
+    <v-col
+      class="py-1"
+      v-if="size != 1"
+      v-for="i in computedSize"
+      :key="i"
+      v-bind="getComponentProps(i-1)"
+    >
+      <v-row no-gutters class="align-center">
+        <v-text-field
+          class="mt-0"
+          :name="`${data().type}:${name}:${i}`"
+          :background-color="color(i)"
+          v-model="model[i - 1]"
+          @input="update(i)"
+          dense
+          :rules="[rule]"
+          @blur="validate(i)"
+          @keydown.enter="validate(i)"
+          hide-details
+
+          :disabled="!decorator.enable"
+        />
+        <v-btn
+          v-if="computedSizeControl"
+          class="ml-2"
+          icon
+          x-small
+          @click="deleteEntry(i - 1)"
+          :disabled="!decorator.enable"
+        >
+          <v-icon>mdi-minus-circle-outline</v-icon>
+        </v-btn>
+      </v-row>
+    </v-col>
+  </v-row>
+  <v-col class="px-0 mt-1" v-if="hints.length">
+    <v-alert
+      v-for="hint, idx in hints"
+      :key="idx"
+      class="mb-1"
+      :type="levelToType(hint.level)"
+      border="left"
+      dense
+      :icon="levelToIcon(hint.level)"
+    >
+      {{ hint.message }}
+    </v-alert>
+  </v-col>
+</v-col>

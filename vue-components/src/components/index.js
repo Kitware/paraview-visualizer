@@ -1,5 +1,7 @@
-import CustomWidget from './CustomWidget';
+import SwColorSelector from './SwColorSelector';
+import SwColorEditor from './SwColorEditor';
 
 export default {
-  'yourCustomWidget':CustomWidget,
+  SwColorSelector,
+  SwColorEditor,
 };
