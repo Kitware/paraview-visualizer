@@ -213,7 +213,12 @@ def property_xml(property):
         container.append(ET.Element("input", name=property.GetXMLName()))
         container.append(ET.Element("proxy", name=property.GetXMLName()))
         return container
-    return ET.Element("input", name=property.GetXMLName())
+
+    attrib = {}
+    if domains.get_property_size(property) == 6:
+        attrib["layout"] = "l2"
+
+    return ET.Element("input", name=property.GetXMLName(), attrib=attrib)
 
 
 # -----------------------------------------------------------------------------
@@ -284,6 +289,7 @@ def proxy_ui(proxy):
     g_size = proxy.GetNumberOfPropertyGroups()
     for g_idx in range(g_size):
         group = proxy.GetPropertyGroup(g_idx)
+        group_key = group.GetXMLLabel()
         p_size = group.GetNumberOfProperties()
 
         # skip groups
@@ -291,27 +297,32 @@ def proxy_ui(proxy):
             continue
 
         # Create group
-        xml_group = ET.Element("col", attrib={"class": "px-0"})
+        xml_group = xml_groups.get(group_key)
+        if xml_group is None:
+            xml_group = ET.Element("col", attrib={"class": "px-0"})
 
-        # Lookup custom group-widgets
-        group_elem = domains.PANEL_WIDGETS.get(group.GetPanelWidget())
-        if group_elem:
-            xml_group = ET.Element(group_elem, attrib={"label": group.GetXMLLabel()})
+            # Lookup custom group-widgets
+            group_elem = domains.PANEL_WIDGETS.get(group.GetPanelWidget())
+            if group_elem:
+                xml_group = ET.Element(
+                    group_elem, attrib={"label": group.GetXMLLabel()}
+                )
 
-        xml_group.append(
-            ET.Element(
-                "text", attrib={"class": "text-h6 px-2"}, content=group.GetXMLLabel()
+            xml_group.append(
+                ET.Element(
+                    "text",
+                    attrib={"class": "text-h6 px-2"},
+                    content=group.GetXMLLabel(),
+                )
             )
-        )
-        xml_group.append(ET.Element("divider", attrib={"class": "mb-2"}))
-        xml_groups[group] = xml_group
+            xml_group.append(ET.Element("divider", attrib={"class": "mb-2"}))
+            xml_groups[group_key] = xml_group
 
         for p_idx in range(p_size):
             property = group.GetProperty(p_idx)
-            prop_to_group[property] = group
+            prop_to_group[property] = group_key
             if not should_skip(property):
                 xml_group.append(property_xml(property))
-        xml_group.append(ET.Element("divider", attrib={"class": "mt-2"}))
 
     # 2) ordered list of xml elements
     group_used = set()
@@ -321,23 +332,27 @@ def proxy_ui(proxy):
     prop_iter.Begin()
     while not prop_iter.IsAtEnd():
         property = prop_iter.GetProperty()
-        group = prop_to_group.get(property)
+        group_key = prop_to_group.get(property)
 
         if should_skip(property):
             prop_iter.Next()
             continue
 
-        if group is None:
+        if group_key is None:
             ordered_properties.append(property_xml(property))
-        elif group not in group_used:
-            group_used.add(group)
-            ordered_properties.append(xml_groups[group])
+        elif group_key not in group_used:
+            group_used.add(group_key)
+            ordered_properties.append(xml_groups[group_key])
 
         prop_iter.Next()
 
     # 3) fill layout > ui > *ordered_properties
     layouts = ET.Element("layouts")
     ui = ET.SubElement(layouts, "ui", id=proxy_type(proxy))
+
+    # DEBUG !!!!
+    # ui.append(ET.Element("sw-life-cycle", attrib={"uiType": proxy_type(proxy) }))
+
     for xml_elem in ordered_properties:
         ui.append(xml_elem)
 

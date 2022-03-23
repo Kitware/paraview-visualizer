@@ -274,7 +274,7 @@ WIDGETS = {
     # toggle switch
     "vtkSMBooleanDomain": "sw-switch",
     # slider
-    "vtkSMDoubleRangeDomain": "sw-slider",
+    "vtkSMDoubleRangeDomain": "sw-slider",  # "sw-text-field", # slider don't work for floats
     "vtkSMIntRangeDomain": "sw-slider",
     # drop down
     "vtkSMEnumerationDomain": "sw-select",
@@ -297,7 +297,7 @@ WIDGETS = {
 
 PANEL_WIDGETS = {
     "color_selector": "sw-color-selector",
-    "color_selector_with_palette": "",
+    "color_selector_with_palette": "sw-color-selector",
     "ColorEditor": "sw-color-editor",
     "data_assembly_editor": "",
     "DataAssemblyEditor": "",
