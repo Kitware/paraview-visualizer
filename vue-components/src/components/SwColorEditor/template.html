@@ -22,15 +22,23 @@
       />
     </v-col>
   </v-row>
-  <v-row class="mx-0 px-2 pt-1 justify-space-around mb-n6">
+
+  <v-row class="mx-0 px-2 pt-1 mb-n6" v-show="colorMode === 'Solid Color'">
+    <v-color-picker
+      style="width: 100%"
+      v-model="solidColor"
+      hide-mode-switch
+      canvas-height="50"
+    />
+  </v-row>
+
+  <v-row class="mx-0 px-2 pt-1 justify-space-around mb-n6" v-show="colorMode !== 'Solid Color'">
     <v-btn small class="mb-3 mx-1">
       <v-icon small v-text="`$pqEditColor`" />
       Edit
     </v-btn>
     <v-btn
       style="min-width: 36px;"
-      :style="hasFieldStyle"
-      :disabled="!hasField"
       small
       class="mb-3 mx-1"
     >
@@ -38,8 +46,6 @@
     </v-btn>
     <v-btn
       style="min-width: 36px;"
-      :style="hasFieldStyle"
-      :disabled="!hasField"
       small
       class="mb-3 mx-1"
     >
@@ -47,8 +53,6 @@
     </v-btn>
     <v-btn
       style="min-width: 36px;"
-      :style="hasFieldStyle"
-      :disabled="!hasField"
       small
       class="mb-3 mx-1"
     >
@@ -56,8 +60,6 @@
     </v-btn>
     <v-btn
       style="min-width: 36px;"
-      :style="hasFieldStyle"
-      :disabled="!hasField"
       small
       class="mb-3 mx-1"
     >
@@ -65,8 +67,6 @@
     </v-btn>
     <v-btn
       style="min-width: 36px;"
-      :style="hasFieldStyle"
-      :disabled="!hasField"
       small
       class="mb-3 mx-1"
     >
@@ -74,8 +74,6 @@
     </v-btn>
     <v-btn
       style="min-width: 36px;"
-      :style="hasFieldStyle"
-      :disabled="!hasField"
       small
       class="mb-3 mx-1"
     >
@@ -84,8 +82,6 @@
     <v-btn
       style="min-width: 36px;"
       style="position: relative;"
-      :style="hasFieldStyle"
-      :disabled="!hasField"
       small
       class="mb-3 mx-1"
     >

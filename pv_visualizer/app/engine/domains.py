@@ -149,12 +149,12 @@ DOMAIN_TYPES = {
     "vtkSMRepresentationTypeDomain": (domain_list_strings),
     "vtkSMProxyListDomain": (domain_list_proxies_simput_ids),
     "vtkSMArrayListDomain": (domain_list_arrays),
+    "vtkSMRepresentedArrayListDomain": (domain_list_arrays),
     # ------------------------------------------------
     "vtkSMDataTypeDomain": (domain_unknown),
     "vtkSMInputArrayDomain": (domain_unknown),
     "vtkSMProxyGroupDomain": (domain_unknown),
     "vtkSMDataAssemblyDomain": (domain_unknown),
-    "vtkSMRepresentedArrayListDomain": (domain_unknown),
     "vtkSMBoundsDomain": (domain_unknown),
     "vtkSMArrayRangeDomain": (domain_unknown),
     "vtkSMNumberOfComponentsDomain": (domain_unknown),

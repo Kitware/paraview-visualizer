@@ -303,7 +303,7 @@ class ParaviewProxyManager:
         self._ui_manager.load_ui(xml_content=ui_xml)
 
         # Generated YAML / XML ------------------------------------------------
-        # if proxy_type == "representations__GeometryRepresentation":
+        # if "representations__" in proxy_type:
         #     print("YAML")
         #     print("#" * 80)
         #     print(model_yaml)
