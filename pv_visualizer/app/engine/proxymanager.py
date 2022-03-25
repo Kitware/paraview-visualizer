@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from trame import Singleton, state, controller as ctrl
 from trame.internal.app import get_app_instance
 
@@ -188,6 +191,9 @@ class ParaviewProxyManager:
         state.source_id = 0
         state.representation_id = 0
 
+        # Debug
+        self._write_definitions_base = str(Path(Path(__file__).parent / "definitions").resolve().absolute())
+
     @property
     def factory(self):
         return self._factory
@@ -285,6 +291,13 @@ class ParaviewProxyManager:
 
         return list_to_fill
 
+    def _write_definition(self, proxy_type, extension, content):
+        file_name = Path(self._write_definitions_base) / f"{'/'.join(proxy_type.split('__'))}.{extension}"
+        os.makedirs(file_name.parent, exist_ok = True)
+        with open(file_name, "w") as file:
+            file.write(content)
+
+
     def _proxy_ensure_definition(self, proxy):
         proxy_type = definitions.proxy_type(proxy)
         if self.pxm.get_definition(proxy_type) is not None:
@@ -302,18 +315,10 @@ class ParaviewProxyManager:
         self._ui_manager.load_language(yaml_content=model_yaml)
         self._ui_manager.load_ui(xml_content=ui_xml)
 
-        # Generated YAML / XML ------------------------------------------------
-        # if "representations__" in proxy_type:
-        #     print("YAML")
-        #     print("#" * 80)
-        #     print(model_yaml)
-        #     print("#" * 80)
-
-        #     print("XML:ui")
-        #     print("#" * 80)
-        #     print(ui_xml)
-        #     print("#" * 80)
-        # Generated YAML / XML ------------------------------------------------
+        # Write definitions
+        if self._write_definitions_base:
+            self._write_definition(proxy_type, "yaml", model_yaml)
+            self._write_definition(proxy_type, "xml", ui_xml)
 
     def _proxy_ensure_binding(self, proxy):
         proxy = paraview.unwrap(proxy)

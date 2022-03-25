@@ -16,6 +16,7 @@ PROPERTY_TYPES = {
     "vtkSMStringVectorProperty": "string",
     "vtkSMProxyProperty": "proxy",
     "vtkSMInputProperty": "proxy",
+    "vtkSMProperty": "command", # FIXME ?
 }
 
 # -----------------------------------------------------------------------------
@@ -319,9 +320,6 @@ def proxy_model(proxy):
         prop_key = f"internal__group__{g_idx}"
         proxy_definition[prop_key] = {"domains": list(result)}
         group_decorator_count += 1
-
-    if group_decorator_count:
-        print(yaml.dump({type_proxy: proxy_definition}))
 
     return yaml.dump({type_proxy: proxy_definition})
 
