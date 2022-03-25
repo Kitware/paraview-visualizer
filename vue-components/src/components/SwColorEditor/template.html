@@ -48,6 +48,7 @@
       style="min-width: 36px;"
       small
       class="mb-3 mx-1"
+      @click="trigger('pv_reaction_scalar_range_data')"
     >
       <v-icon small v-text="`$pqResetRange`" />
     </v-btn>
@@ -62,6 +63,7 @@
       style="min-width: 36px;"
       small
       class="mb-3 mx-1"
+      @click="trigger('pv_reaction_scalar_range_time')"
     >
       <v-icon small v-text="`$pqResetRangeTemporal`" />
     </v-btn>

@@ -43,7 +43,6 @@ export default {
     },
     togglePropertyName() {
       if (this.hints) {
-        console.log(atob(this.hints));
         const list = JSON.parse(atob(this.hints)).children;
         const toggleProp = list.find(
           ({ elem_name }) => elem_name === 'ProxyEditorPropertyWidget'

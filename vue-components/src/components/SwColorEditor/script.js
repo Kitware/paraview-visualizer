@@ -1,4 +1,4 @@
-import { floatToHex2, debounce } from '../../utils';
+import { floatToHex2, debounce, areEquals } from '../../utils';
 
 let COUNT = 1;
 
@@ -115,9 +115,11 @@ export default {
           parseInt(hexStr.substr(3, 2), 16) / 255,
           parseInt(hexStr.substr(5, 2), 16) / 255,
         ];
-        this.properties().AmbientColor = colorFloat;
-        this.properties().DiffuseColor = colorFloat;
-        this.flushSolidColorToServer();
+        if (!areEquals(this.properties().AmbientColor, colorFloat)) {
+          this.properties().AmbientColor = colorFloat;
+          this.properties().DiffuseColor = colorFloat;
+          this.flushSolidColorToServer();
+        }
       },
     },
   },
@@ -130,5 +132,6 @@ export default {
     'getSimput',
     'uiTS',
     'simputChannel',
+    'trigger',
   ],
 };
