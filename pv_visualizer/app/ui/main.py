@@ -128,7 +128,7 @@ with layout.content:
             simple.GetRenderView() if simple else None,
             interactive_ratio=("view_interactive_ratio", 1),
             interactive_quality=("view_interactive_quality", 70),
-            mode="local",
+            mode="remote",
             namespace="view",
             style="width: 100%; height: 100%;",
         )
