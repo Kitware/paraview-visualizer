@@ -2,6 +2,7 @@ r"""
 Define your classes and create the instances that you need to expose
 """
 from ..cli import get_args
+from .reactions import register_reactions
 
 try:
     from paraview import simple
@@ -22,6 +23,9 @@ def initialize():
             print(f"  - {plugin}")
             simple.LoadDistributedPlugin(plugin)
         print()
+
+    # Bind methods to controller + trigger name
+    register_reactions()
 
 
 # ---------------------------------------------------------
