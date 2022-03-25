@@ -335,7 +335,7 @@ class EnableWidgetDecorator(BoolPropertyDecorator):
 
 class OSPRayHidingDecorator:
     # Should be set at initialization
-    OSPRAY_AVAILABLE = True
+    OSPRAY_AVAILABLE = False
 
     def __init__(self, proxy, hint):
         pass

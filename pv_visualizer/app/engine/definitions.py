@@ -1,4 +1,6 @@
 import yaml
+import json
+import base64
 import xml.etree.ElementTree as ET
 
 from . import paraview, domains
@@ -47,7 +49,12 @@ DECORATOR_ATTRS = [
 
 
 def xml_to_json(xml_elem, attr_list=DECORATOR_ATTRS):
-    entry = {}
+    if xml_elem is None:
+        return {}
+
+    entry = {
+        "elem_name": xml_elem.GetName(),
+    }
 
     for attr_name in attr_list:
         attr_value = xml_elem.GetAttribute(attr_name)
@@ -160,11 +167,7 @@ def property_yaml(property):
     property_definition = {}
     property_name = property.GetXMLName()
 
-    if (
-        property.GetPanelVisibility() == "never"
-        or property.GetInformationOnly()
-        or property.GetIsInternal()
-    ):
+    if property.GetInformationOnly() or property.GetIsInternal():
         return {}
 
     if property.GetXMLLabel():
@@ -207,7 +210,19 @@ def property_yaml(property):
 # -----------------------------------------------------------------------------
 
 
+def json_base64(obj):
+    return base64.b64encode(json.dumps(obj).encode("utf-8")).decode("ascii")
+
+
 def property_xml(property):
+    widget = domains.PANEL_WIDGETS.get(property.GetPanelWidget())
+    if widget and widget != "skip":
+        return ET.Element(
+            widget,
+            name=property.GetXMLName(),
+            hints=json_base64(xml_to_json(property.GetHints())),
+        )
+
     if property.IsA("vtkSMProxyProperty"):
         container = ET.Element("col", attrib={"class": "pa-0"})
         container.append(ET.Element("input", name=property.GetXMLName()))
@@ -274,6 +289,40 @@ def proxy_model(proxy):
         proxy_definition.update(property_yaml(property))
         prop_iter.Next()
 
+    # Look for group with widget decorator to fake prop with domain
+    g_size = proxy.GetNumberOfPropertyGroups()
+    group_decorator_count = 0
+    for g_idx in range(g_size):
+        group = proxy.GetPropertyGroup(g_idx)
+        hints = group.GetHints()
+        if hints is None:
+            continue
+
+        result = []
+        size = hints.GetNumberOfNestedElements()
+        for i in range(size):
+            xml_elem = hints.GetNestedElement(i)
+            if xml_elem.GetName() == "PropertyWidgetDecorator":
+                result.append(
+                    {
+                        "name": "decorator",
+                        "type": "ParaViewDecoratorDomain",
+                        "properties": xml_to_json(xml_elem),
+                    }
+                )
+
+        result = merge_decorators(*result)
+        if len(result) == 0:
+            continue
+
+        # we have decorators to register as domain
+        prop_key = f"internal__group__{g_idx}"
+        proxy_definition[prop_key] = {"domains": list(result)}
+        group_decorator_count += 1
+
+    if group_decorator_count:
+        print(yaml.dump({type_proxy: proxy_definition}))
+
     return yaml.dump({type_proxy: proxy_definition})
 
 
@@ -294,28 +343,31 @@ def proxy_ui(proxy):
 
         # skip groups
         if group.GetPanelVisibility() in [None, "never"]:
-            continue
+            group_key = "skip"
+
+        # Skip custom widget until they get implemented
+        if domains.PANEL_WIDGETS.get(group.GetPanelWidget()) == "skip":
+            group_key = "skip"
+            print(f"> Skip {group.GetPanelWidget()}")
 
         # Create group
         xml_group = xml_groups.get(group_key)
         if xml_group is None:
-            xml_group = ET.Element("col", attrib={"class": "px-0"})
+            xml_group = ET.Element(
+                "sw-group",
+                attrib={
+                    "title": group.GetXMLLabel(),
+                    "name": f"internal__group__{g_idx}",
+                },
+            )
 
             # Lookup custom group-widgets
             group_elem = domains.PANEL_WIDGETS.get(group.GetPanelWidget())
             if group_elem:
-                xml_group = ET.Element(
-                    group_elem, attrib={"label": group.GetXMLLabel()}
-                )
+                el = ET.Element(group_elem, attrib={"label": group.GetXMLLabel()})
+                xml_group.append(el)
+                xml_group = el
 
-            xml_group.append(
-                ET.Element(
-                    "text",
-                    attrib={"class": "text-h6 px-2"},
-                    content=group.GetXMLLabel(),
-                )
-            )
-            xml_group.append(ET.Element("divider", attrib={"class": "mb-2"}))
             xml_groups[group_key] = xml_group
 
         for p_idx in range(p_size):
@@ -325,7 +377,7 @@ def proxy_ui(proxy):
                 xml_group.append(property_xml(property))
 
     # 2) ordered list of xml elements
-    group_used = set()
+    group_used = set("skip")
     ordered_properties = []
     prop_iter = servermanager.vtkSMOrderedPropertyIterator()
     prop_iter.SetProxy(proxy)
@@ -334,7 +386,7 @@ def proxy_ui(proxy):
         property = prop_iter.GetProperty()
         group_key = prop_to_group.get(property)
 
-        if should_skip(property):
+        if should_skip(property) or group_key == "skip":
             prop_iter.Next()
             continue
 

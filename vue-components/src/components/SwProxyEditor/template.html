@@ -1,0 +1,21 @@
+<v-card outlined tile class="px-0" v-show="decorator.show" style="position: relative;">
+  <v-card-title class="py-1 px-0">
+    <v-btn icon @click="toggleCollapse">
+      <v-icon>{{ collapseIcon }}</v-icon>
+    </v-btn>
+    {{ label }}
+    <v-spacer />
+    <SimputItem
+      no-ui
+      :itemId="itemId"
+    >
+      <template v-slot="{ data }">
+        <sw-nested-switch :name="togglePropertyName" :mtime="data.mtime" />
+      </template>
+    </SimputItem>
+  </v-card-title>
+  <v-divider v-if="!collapsed"/>
+  <v-card-text v-show="!collapsed" class="px-0 my-n4">
+    <SimputItem :itemId="itemId" />
+  </v-card-text>
+</v-card>

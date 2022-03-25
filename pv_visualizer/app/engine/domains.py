@@ -299,16 +299,18 @@ PANEL_WIDGETS = {
     "color_selector": "sw-color-selector",
     "color_selector_with_palette": "sw-color-selector",
     "ColorEditor": "sw-color-editor",
-    "data_assembly_editor": "",
-    "DataAssemblyEditor": "",
-    "display_representation_selector": "",
-    "FontEditor": "",
-    "input_selector": "",
-    "int_mask": "",
-    "InteractiveBox": "",
-    "proxy_editor": "",
-    "texture_selector": "",
-    "transfer_function_editor": "",
+    # ------ ?
+    "proxy_editor": "sw-proxy-editor",  # pop-up to edit proxy on the side
+    "display_representation_selector": "",  # need to call vtkSMRepresentationProxy::SetRepresentationType
+    # ------ skip
+    "data_assembly_editor": "skip",
+    "DataAssemblyEditor": "skip",
+    "FontEditor": "skip",
+    "input_selector": "skip",
+    "int_mask": "skip",
+    "InteractiveBox": "skip",
+    "texture_selector": "skip",
+    "transfer_function_editor": "skip",
 }
 
 
