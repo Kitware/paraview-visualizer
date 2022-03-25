@@ -4,20 +4,13 @@ import base64
 import xml.etree.ElementTree as ET
 
 from . import paraview, domains
+from .const import PROPERTY_TYPES, DECORATOR_ATTRS
 
 try:
     from paraview import servermanager
 except:
     servermanager = None
 
-PROPERTY_TYPES = {
-    "vtkSMIntVectorProperty": "int32",
-    "vtkSMDoubleVectorProperty": "float64",
-    "vtkSMStringVectorProperty": "string",
-    "vtkSMProxyProperty": "proxy",
-    "vtkSMInputProperty": "proxy",
-    "vtkSMProperty": "command", # FIXME ?
-}
 
 # -----------------------------------------------------------------------------
 # Spec key
@@ -32,21 +25,6 @@ def proxy_type(proxy):
 # -----------------------------------------------------------------------------
 # Model generators
 # -----------------------------------------------------------------------------
-
-DECORATOR_ATTRS = [
-    "type",
-    "mode",
-    "exclude",
-    "index",
-    "name",
-    "property",
-    "value",
-    "values",
-    "inverse",
-    "number_of_components",
-    "function",
-    "components",
-]
 
 
 def xml_to_json(xml_elem, attr_list=DECORATOR_ATTRS):
@@ -168,7 +146,11 @@ def property_yaml(property):
     property_definition = {}
     property_name = property.GetXMLName()
 
-    if property.GetInformationOnly() or property.GetIsInternal():
+    if (
+        property.GetInformationOnly()
+        or property.GetIsInternal()
+        or property.GetClassName() not in PROPERTY_TYPES
+    ):
         return {}
 
     if property.GetXMLLabel():
@@ -241,8 +223,8 @@ def property_xml(property):
 
 
 def should_skip(property):
-    # if property.GetXMLName() in ["Input"]:
-    #     # Reserved prop name without UI
+    # Skip vtkSMProperty
+    # if property.GetClassName() not in PROPERTY_TYPES:
     #     return True
 
     if property.GetIsInternal():
@@ -250,7 +232,7 @@ def should_skip(property):
         return True
 
     visibility = property.GetPanelVisibility()
-    if visibility in [None, "never"]:
+    if visibility in ["never"]:
         # print("skip visibility", visibility)
         return True
 
@@ -287,7 +269,18 @@ def proxy_model(proxy):
     prop_iter.Begin()
     while not prop_iter.IsAtEnd():
         property = prop_iter.GetProperty()
-        proxy_definition.update(property_yaml(property))
+        # Make sure we do not override root proxy prop with sub-proxy one
+        if proxy == property.GetParent():
+            proxy_definition.update(property_yaml(property))
+        else:
+            def_add_on = property_yaml(property)
+            for key in def_add_on:
+                if key not in proxy_definition:
+                    proxy_definition[key] = def_add_on[key]
+                else:
+                    print(
+                        f"Skip property {key} override in {proxy.GetXMLName()} by {property.GetParent().GetXMLName()}"
+                    )
         prop_iter.Next()
 
     # Look for group with widget decorator to fake prop with domain

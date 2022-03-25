@@ -192,7 +192,9 @@ class ParaviewProxyManager:
         state.representation_id = 0
 
         # Debug
-        self._write_definitions_base = str(Path(Path(__file__).parent / "definitions").resolve().absolute())
+        self._write_definitions_base = str(
+            Path(Path(__file__).parent / "definitions").resolve().absolute()
+        )
 
     @property
     def factory(self):
@@ -292,11 +294,13 @@ class ParaviewProxyManager:
         return list_to_fill
 
     def _write_definition(self, proxy_type, extension, content):
-        file_name = Path(self._write_definitions_base) / f"{'/'.join(proxy_type.split('__'))}.{extension}"
-        os.makedirs(file_name.parent, exist_ok = True)
+        file_name = (
+            Path(self._write_definitions_base)
+            / f"{'/'.join(proxy_type.split('__'))}.{extension}"
+        )
+        os.makedirs(file_name.parent, exist_ok=True)
         with open(file_name, "w") as file:
             file.write(content)
-
 
     def _proxy_ensure_definition(self, proxy):
         proxy_type = definitions.proxy_type(proxy)
