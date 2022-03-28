@@ -40,43 +40,27 @@ export default {
   data() {
     return {
       tsKey: '__default__',
-      componentMode: '',
-      componentOptions: ['Magnitude', 'X', 'Y', 'Z'],
+      componentMode: 'Magnitude',
     };
   },
-  // watch: {
-  //   colorMode() {
-  //     // console.log(
-  //     //   'DATA',
-  //     //   JSON.stringify(this.data()?.properties?.ColorArrayName, null, 2)
-  //     // );
-  //     console.log(
-  //       'DOMAIN',
-  //       JSON.stringify(this.domains().ColorArrayName, null, 2)
-  //     );
-  //   },
-  // },
+  watch: {
+    componentMode() {
+      this.updateColorBy();
+    },
+  },
   computed: {
-    // fixme ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    hasComponents() {
-      return this.colorMode === 'Velocity';
-    },
-    hasField() {
-      return this.colorMode !== 'Solid Color';
-    },
-    hasFieldStyle() {
-      return this.hasField ? {} : { opacity: 0.5 };
-    },
-    // fixme ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     arrayMap() {
       this.mtime; // force refresh
-      const arrayMap = { 'Solid Color': ['', '', '', '0', ''] };
+      const arrayMap = { 'Solid Color': { value: ['', '', '', '0', ''] } };
       const list = this.domains()?.ColorArrayName?.array_list?.available || [];
       for (let i = 0; i < list.length; i++) {
-        const { text, value } = list[i];
-        arrayMap[text] = value;
+        const { text, value, components } = list[i];
+        arrayMap[text] = { value, components };
       }
       return arrayMap;
+    },
+    componentOptions() {
+      return this.arrayMap[this.colorMode]?.components;
     },
     colorOptions() {
       this.mtime; // force refresh
@@ -94,8 +78,9 @@ export default {
         return 'Solid Color';
       },
       set(name) {
-        this.properties().ColorArrayName = this.arrayMap[name];
+        this.properties().ColorArrayName = this.arrayMap[name]?.value;
         this.dirty('ColorArrayName');
+        this.updateColorBy();
       },
     },
     solidColor: {
@@ -121,6 +106,29 @@ export default {
           this.flushSolidColorToServer();
         }
       },
+    },
+  },
+  methods: {
+    updateColorBy() {
+      const field = this.properties().ColorArrayName;
+      const name = field[4];
+      const association = Number(field[3]);
+      let component = this.componentOptions
+        ? this.componentOptions.indexOf(this.componentMode)
+        : -1;
+      if (component !== -1) {
+        component--;
+      } else {
+        this.componentMode = 'Magnitude';
+      }
+
+      if (name) {
+        this.trigger('pv_reaction_representation_color_by', [
+          [name, association, component],
+        ]);
+      } else {
+        this.trigger('pv_reaction_representation_color_by');
+      }
     },
   },
   inject: [

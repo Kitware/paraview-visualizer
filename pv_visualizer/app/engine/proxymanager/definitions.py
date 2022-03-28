@@ -144,14 +144,13 @@ def property_domains_yaml(property):
 
 def property_yaml(property):
     property_definition = {}
-    property_name = property.GetXMLName()
 
     if (
         property.GetInformationOnly()
         or property.GetIsInternal()
         or property.GetClassName() not in PROPERTY_TYPES
     ):
-        return {}
+        return False
 
     if property.GetXMLLabel():
         property_definition["_label"] = property.GetXMLLabel()
@@ -185,7 +184,10 @@ def property_yaml(property):
         ),
     ]
 
-    return {property_name: property_definition}
+    if len(property_definition):
+        return property_definition
+
+    return False
 
 
 # -----------------------------------------------------------------------------
@@ -264,24 +266,24 @@ def should_skip(property):
 def proxy_model(proxy):
     type_proxy = proxy_type(proxy)
 
-    proxy_definition = {}
+    # Make representations and views proxy auto apply
+    _tags = []
+    proxy_definition = {"_tags": _tags}
+    if proxy.GetXMLGroup() in ["representations", "views"]:
+        _tags.append("auto_commit")
+
+    # Track all the properties
     prop_iter = proxy.NewPropertyIterator()
     prop_iter.Begin()
     while not prop_iter.IsAtEnd():
+        property_name = prop_iter.GetKey()
         property = prop_iter.GetProperty()
-        # Make sure we do not override root proxy prop with sub-proxy one
-        if proxy == property.GetParent():
-            proxy_definition.update(property_yaml(property))
-        else:
-            def_add_on = property_yaml(property)
-            for key in def_add_on:
-                if key not in proxy_definition:
-                    proxy_definition[key] = def_add_on[key]
-                else:
-                    print(
-                        f"Skip property {key} override in {proxy.GetXMLName()} by {property.GetParent().GetXMLName()}"
-                    )
+        property_definition = property_yaml(property)
         prop_iter.Next()
+
+        # Skip empty properties
+        if property_definition:
+            proxy_definition[property_name] = property_definition
 
     # Look for group with widget decorator to fake prop with domain
     g_size = proxy.GetNumberOfPropertyGroups()
@@ -339,7 +341,7 @@ def proxy_ui(proxy):
         # Skip custom widget until they get implemented
         if domains.PANEL_WIDGETS.get(group.GetPanelWidget()) == "skip":
             group_key = "skip"
-            print(f"> Skip {group.GetPanelWidget()}")
+            # print(f"> Skip {group.GetPanelWidget()}")
 
         # Create group
         xml_group = xml_groups.get(group_key)

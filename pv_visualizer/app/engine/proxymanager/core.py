@@ -60,11 +60,7 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
                 if before != after:
                     change_count += 1
             else:
-                try:
-                    before = property.GetElement(0)
-                except AttributeError as e:
-                    print("Error", property.GetClassName())
-                    raise (e)
+                before = property.GetElement(0)
                 property.SetElement(0, value)
                 after = property.GetElement(0)
                 if before != after:

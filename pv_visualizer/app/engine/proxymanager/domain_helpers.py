@@ -103,20 +103,40 @@ def domain_list_proxies_simput_ids(domain):
 
 # -----------------------------------------------------------------------------
 def domain_list_arrays(domain):
-    field_type = f"{domain.GetAttributeType()}"
-    return [
-        {
-            "text": entry.get("text"),
+    proxy = domain.GetProperty().GetParent()
+    data_info = None
+    if proxy.IsA("vtkSMRepresentationProxy"):
+        data_info = proxy.GetRepresentedDataInformation()
+    result_list = []
+
+    for idx, entry in enumerate(domain_list_strings(domain)):
+        label = entry.get("text")
+        name = entry.get("value")
+        association = domain.GetFieldAssociation(idx)
+        entry = {
+            "text": label,
             "value": [
                 "",
                 "",
                 "",
-                field_type,
-                entry.get("value"),
+                f"{association}",
+                name,
             ],
         }
-        for entry in domain_list_strings(domain)
-    ]
+        if data_info:
+            components_list = []
+            array_info = data_info.GetArrayInformation(label, association)
+            if array_info:
+                nb_components = array_info.GetNumberOfComponents()
+                if nb_components > 1:
+                    components_list.append(array_info.GetComponentName(-1))
+                    for i in range(nb_components):
+                        components_list.append(array_info.GetComponentName(i))
+                    entry["components"] = components_list
+
+        result_list.append(entry)
+
+    return result_list
 
 
 # -----------------------------------------------------------------------------

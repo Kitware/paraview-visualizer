@@ -2,7 +2,7 @@
   <div class="text-h6 px-2">{{ label }}</div>
   <v-divider class="pt-0 mt-0" />
   <v-row class="mx-0 px-1 py-3">
-    <v-col col="6" class="py-0">
+    <v-col class="py-0">
       <v-select
         :key="tsKey"
         v-model="colorMode"
@@ -11,12 +11,11 @@
         dense
       />
     </v-col>
-    <v-col col="6" class="py-0">
+    <v-col class="py-0" v-if="componentOptions">
       <v-select
         :key="tsKey"
         v-model="componentMode"
         :items="componentOptions"
-        :disabled="!hasComponents"
         hide-details
         dense
       />
