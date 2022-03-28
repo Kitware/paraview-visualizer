@@ -41,6 +41,7 @@ export default {
     return {
       tsKey: '__default__',
       componentMode: 'Magnitude',
+      editingMode: null,
     };
   },
   watch: {
@@ -49,6 +50,9 @@ export default {
     },
   },
   computed: {
+    scalarBarVisible() {
+      return this.get('active_representation_scalarbar_visibility');
+    },
     arrayMap() {
       this.mtime; // force refresh
       const arrayMap = { 'Solid Color': { value: ['', '', '', '0', ''] } };
@@ -107,6 +111,15 @@ export default {
         }
       },
     },
+    useSeparateColorMap: {
+      get() {
+        return !!this.properties() && this.properties().UseSeparateColorMap;
+      },
+      set(v) {
+        this.properties().UseSeparateColorMap = v ? 1 : 0;
+        this.dirty('UseSeparateColorMap');
+      },
+    },
   },
   methods: {
     updateColorBy() {
@@ -132,6 +145,7 @@ export default {
     },
   },
   inject: [
+    'get',
     'data',
     'properties',
     'domains',

@@ -227,6 +227,7 @@ class ParaviewProxyManager:
 
         state.source_id = self.handle_proxy(source)
         state.representation_id = self.handle_proxy(representation)
+        ctrl.pv_reaction_representation_scalarbar_update()
 
     def on_proxy_delete(self, pv_id):
         """!!! THIS IS NOT WORKING !!!"""

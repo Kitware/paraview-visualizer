@@ -1,5 +1,5 @@
 from paraview import simple, servermanager
-from trame import controller as ctrl
+from trame import state, controller as ctrl
 
 from paraview.modules.vtkRemotingViews import vtkSMRepresentationProxy
 
@@ -13,6 +13,28 @@ def unwrap(p):
 def update_representation_type(name):
     proxy = simple.GetRepresentation()
     vtkSMRepresentationProxy.SetRepresentationType(unwrap(proxy), name)
+    ctrl.view_update()
+
+
+def refresh_scalarbar_visibility():
+    visible = 0
+    view = simple.GetActiveView()
+    source = simple.GetActiveSource()
+    if view and source:
+        proxy = simple.GetRepresentation(source, view)
+        visible = proxy.IsScalarBarVisible(view)
+    state.active_representation_scalarbar_visibility = visible
+
+
+def toggle_scalarbar_visibility():
+    visible = not state.active_representation_scalarbar_visibility
+    state.active_representation_scalarbar_visibility = visible
+    view = simple.GetActiveView()
+    source = simple.GetActiveSource()
+    if view and source:
+        proxy = simple.GetRepresentation(source, view)
+        proxy.SetScalarBarVisibility(view, visible)
+
     ctrl.view_update()
 
 
@@ -66,11 +88,16 @@ def color_by(value=None):
         rep.SetScalarColoring(arrayname, association, component)
     rep.RescaleTransferFunctionToDataRange()
     ctrl.view_update()
+    refresh_scalarbar_visibility()
 
 
 # -----------------------------------------------------------------------------
 TRIGGER_MAPPING = {
     "pv_reaction_representation_type": update_representation_type,
     "pv_reaction_representation_color_by": color_by,
+    "pv_reaction_representation_scalarbar_update": refresh_scalarbar_visibility,
+    "pv_reaction_representation_scalarbar_toggle": toggle_scalarbar_visibility,
 }
 # -----------------------------------------------------------------------------
+
+refresh_scalarbar_visibility()

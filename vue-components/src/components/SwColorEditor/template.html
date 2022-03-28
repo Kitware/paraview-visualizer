@@ -31,18 +31,31 @@
     />
   </v-row>
 
-  <v-row class="mx-0 px-2 pt-1 justify-space-around mb-n6" v-show="colorMode !== 'Solid Color'">
-    <v-btn small class="mb-3 mx-1">
-      <v-icon small v-text="`$pqEditColor`" />
-      Edit
+  <v-row
+    class="mx-0 px-2 pt-1 justify-space-around mb-n6"
+    v-show="colorMode !== 'Solid Color'"
+  >
+    <v-btn
+      style="min-width: 36px;"
+      small
+      class="mb-3 mx-1"
+      :depressed="scalarBarVisible"
+      :color="scalarBarVisible ? 'primary' : ''"
+      @click="trigger('pv_reaction_representation_scalarbar_toggle')"
+    >
+      <v-icon small v-text="`$pqScalarBar`" />
     </v-btn>
     <v-btn
       style="min-width: 36px;"
       small
       class="mb-3 mx-1"
+      :depressed="useSeparateColorMap"
+      :color="useSeparateColorMap ? 'primary' : ''"
+      @click="useSeparateColorMap = !useSeparateColorMap"
     >
       <v-icon small v-text="`$pqSeparateColorMap`" />
     </v-btn>
+    <v-spacer />
     <v-btn
       style="min-width: 36px;"
       small
@@ -51,13 +64,7 @@
     >
       <v-icon small v-text="`$pqResetRange`" />
     </v-btn>
-    <v-btn
-      style="min-width: 36px;"
-      small
-      class="mb-3 mx-1"
-    >
-      <v-icon small v-text="`$pqResetRangeCustom`" />
-    </v-btn>
+
     <v-btn
       style="min-width: 36px;"
       small
@@ -66,34 +73,57 @@
     >
       <v-icon small v-text="`$pqResetRangeTemporal`" />
     </v-btn>
-    <v-btn
-      style="min-width: 36px;"
-      small
-      class="mb-3 mx-1"
-    >
-      <v-icon small v-text="`$pqFavorites`" />
-    </v-btn>
-    <v-btn
-      style="min-width: 36px;"
-      small
-      class="mb-3 mx-1"
-    >
-      <v-icon small v-text="`$pqScalarBar`" />
-    </v-btn>
-    <v-btn
-      style="min-width: 36px;"
-      style="position: relative;"
-      small
-      class="mb-3 mx-1"
-    >
-      <v-icon small v-text="`$pqScalarBar`" />
-      <div
-        style="position: absolute; left: calc(50% + 5px); top: calc(50% + 5px); transform: translate(-50%, -50%);"
-        class="text-caption font-weight-black text-lowercase"
+  </v-row>
+  <v-row class="mx-0 px-2 pt-3">
+    <v-btn-toggle v-model="editingMode">
+      <v-btn small value="edit_colormap">
+        <v-icon small v-text="`$pqEditColor`" />
+        Edit
+      </v-btn>
+      <v-btn style="min-width: 36px;" small value="edit_scalar_range">
+        <v-icon small v-text="`$pqResetRangeCustom`" />
+      </v-btn>
+      <v-btn style="min-width: 36px;" small value="edit_presets">
+        <v-icon small v-text="`$pqFavorites`" />
+      </v-btn>
+      <v-btn
+        style="min-width: 36px;"
+        style="position: relative;"
+        small
+        value="edit_scalarbar"
       >
-        e
-      </div>
-    </v-btn>
-    <v-spacer />
+        <v-icon small v-text="`$pqScalarBar`" />
+        <div
+          style="position: absolute; left: calc(50% + 5px); top: calc(50% + 5px); transform: translate(-50%, -50%);"
+          class="text-caption font-weight-black text-lowercase"
+        >
+          e
+        </div>
+      </v-btn>
+    </v-btn-toggle>
+  </v-row>
+  <v-row
+    v-show="editingMode == 'edit_colormap'"
+    class="mx-0 px-2 pt-1 justify-space-around"
+  >
+    Color map editing... TODO
+  </v-row>
+  <v-row
+    v-show="editingMode == 'edit_scalar_range'"
+    class="mx-0 px-2 pt-1 justify-space-around"
+  >
+    Custom data range editing... TODO
+  </v-row>
+  <v-row
+    v-show="editingMode == 'edit_presets'"
+    class="mx-0 px-2 pt-1 justify-space-around"
+  >
+    Color preset selection... TODO
+  </v-row>
+  <v-row
+    v-show="editingMode == 'edit_scalarbar'"
+    class="mx-0 px-2 pt-1 justify-space-around"
+  >
+    Scalar bar editing... TODO
   </v-row>
 </v-col>
