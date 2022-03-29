@@ -40,10 +40,10 @@ PANEL_WIDGETS = {
     "color_selector": "sw-color-selector",
     "color_selector_with_palette": "sw-color-selector",
     "ColorEditor": "sw-color-editor",
+    "display_representation_selector": "sw-display-representation-selector",
     # ------ partial
     "proxy_editor": "sw-proxy-editor",  # pop-up to edit proxy on the side
     # ------ default fallback
-    "display_representation_selector": "",  # need to call vtkSMRepresentationProxy::SetRepresentationType
     "InteractiveBox": "",  # clip > Box
     # ------ skip
     "data_assembly_editor": "skip",

@@ -216,6 +216,10 @@ class ParaviewProxyManager:
         app = get_app_instance()
         app.update(ref="simput", method="reload", args=["domain"])
 
+    def reload_data(self):
+        app = get_app_instance()
+        app.update(ref="simput", method="reload", args=["data"])
+
     def on_active_change(self, **kwargs):
         source = simple.GetActiveSource()
         view = simple.GetActiveView()
@@ -346,6 +350,14 @@ class ParaviewProxyManager:
 
         return simput_entry.id
 
+    def refresh_active_proxies(self):
+        for _id in [state.source_id, state.representation_id]:
+            simput_rep = self._pxm.get(_id)
+            if simput_rep:
+                simput_rep.fetch()
+
+        self.reload_data()
+        self.reload_domains()
 
 # -----------------------------------------------------------------------------
 
@@ -361,6 +373,7 @@ ctrl.on_active_proxy_change.add(ParaviewProxyManager().on_active_change)
 # Listeners
 # ---------------------------------------------------------
 
+ctrl.pxm_refresh_active_proxies = PV_PXM.refresh_active_proxies
 
 @state.change("ui_advanced")
 def update_advanced(ui_advanced, **kwargs):

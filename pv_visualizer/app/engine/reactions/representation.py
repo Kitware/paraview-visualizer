@@ -14,6 +14,7 @@ def update_representation_type(name):
     proxy = simple.GetRepresentation()
     vtkSMRepresentationProxy.SetRepresentationType(unwrap(proxy), name)
     ctrl.view_update()
+    ctrl.pxm_refresh_active_proxies()
 
 
 def refresh_scalarbar_visibility():

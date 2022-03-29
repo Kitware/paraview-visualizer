@@ -1,0 +1,12 @@
+<v-col class="py-0" v-show="decorator.show">
+  <v-select
+    :key="tsKey"
+    :label="label"
+    :hint="help"
+    v-model="model"
+    :items="computedItems"
+    @change="validate"
+    :persistent-hint="!!help"
+    :disabled="!decorator.enable"
+  />
+</v-col>

@@ -74,7 +74,7 @@
       <v-icon small v-text="`$pqResetRangeTemporal`" />
     </v-btn>
   </v-row>
-  <v-row class="mx-0 px-2 pt-3">
+  <v-row class="mx-0 px-2 py-3" v-show="colorMode !== 'Solid Color'">
     <v-btn-toggle v-model="editingMode">
       <v-btn small value="edit_colormap">
         <v-icon small v-text="`$pqEditColor`" />
