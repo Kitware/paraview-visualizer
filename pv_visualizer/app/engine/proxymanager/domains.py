@@ -135,7 +135,7 @@ def get_domain_widget(domain):
             # print(
             #     f"Use custom widget {property.GetXMLName()} {panel_widget} => {widget}"
             # )
-        else:
+        elif custom_widget is None:
             print(f"Missing custom widget key: {panel_widget}")
 
     # Try to adjust layout base on property size
