@@ -54,7 +54,6 @@ PANEL_WIDGETS = {
     "texture_selector": "skip",
     "transfer_function_editor": "skip",
     "FontEditor": "skip",
-    "display_representation_selector": "skip",
 }
 
 # Simple domain mapping to widget UI (i.e.: range -> slider)
