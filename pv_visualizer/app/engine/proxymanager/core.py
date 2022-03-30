@@ -151,6 +151,18 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
             else:
                 property.SetUncheckedElement(0, value)
 
+    @staticmethod
+    def before_delete(simput_proxy):
+        pv_proxy = simput_proxy.object
+        print(
+            "Deleting PV proxy",
+            simput_proxy.id,
+            pv_proxy.GetGlobalIDAsString(),
+            pv_proxy.GetReferenceCount(),
+        )
+        simple.Delete(pv_proxy)
+        print("simple.Delete() => done", pv_proxy.GetReferenceCount())
+
 
 PV_ADAPTER = ParaViewProxyObjectAdapter()
 # -----------------------------------------------------------------------------
@@ -261,26 +273,26 @@ class ParaviewProxyManager:
         ctrl.pv_reaction_representation_scalarbar_update()
 
     def on_proxy_delete(self, pv_id):
-        """!!! THIS IS NOT WORKING !!!"""
         pv_view = simple.GetActiveView()
 
-        s_id = self._id_pv_to_simput[pv_id]
-        s_source = self._pxm.get(s_id)
+        s_source_id = self._id_pv_to_simput[pv_id]
+        s_source = self._pxm.get(s_source_id)
 
         pv_source = s_source.object
-        pv_rep = simple.GetRepresentation(proxy=pv_source, view=pv_view)
+        pv_rep_ids = []
+        for i in range(10):  # prob the first 10 ports
+            pv_rep = pv_view.FindRepresentation(pv_source, i)
+            if pv_rep:
+                pv_rep_ids.append(pv_rep.GetGlobalIDAsString())
 
-        s_id = self._id_pv_to_simput[pv_rep.GetGlobalIDAsString()]
-        s_rep = self._pxm.get(s_id)
+        for pv_rep_id in pv_rep_ids:
+            s_id = self._id_pv_to_simput[pv_rep_id]
+            self._pxm.delete(s_id)
 
-        self._pxm.delete(s_rep.id)
-        self._pxm.delete(s_source.id)
-
-        pv_rep.Visibility = 0  # Not sure why still around after delete
-        simple.Delete(pv_rep)
-        simple.Delete(pv_source)
+        self._pxm.delete(s_source_id)
 
         # Trigger some life cycle events
+        # ctrl.pipeline_update()
         ctrl.on_active_proxy_change()
         ctrl.on_data_change()
 

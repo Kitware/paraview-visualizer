@@ -91,7 +91,7 @@ class PipelineBrowser(GitTree):
 
             representation = simple.GetRepresentation(proxy=proxy, view=view_proxy)
             source["rep"] = representation.GetGlobalIDAsString()
-            source["visible"] = representation.Visibility
+            source["visible"] = int(representation.Visibility)
 
             if hasattr(proxy, "Input") and proxy.Input:
                 inputProp = proxy.Input
