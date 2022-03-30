@@ -9,6 +9,23 @@ LOG_DIR = "/Users/sebastien.jourdain/Documents/code/open-source/Web/apps/pv-visu
 
 # -----------------------------------------------------------------------------
 
+AUTO_COMMIT_XML_GROUPS = [
+    "representations",
+    "views",
+    "annotations",
+    "settings",
+]
+
+SETTINGS_PROXIES = [
+    ("General", "GeneralSettings", "mdi-application-cog-outline"),
+    # ("Camera", "RenderViewInteractionSettings", "mdi-rotate-3d"),
+    ("Render View", "RenderViewSettings", "mdi-cube-scan"),
+    # ("Color Arrays", "RepresentedArrayListSettings", "mdi-database-eye-outline"),
+    ("Color Palette", "ColorPalette", "mdi-palette"),
+]
+
+# -----------------------------------------------------------------------------
+
 # C++ to Simput type definition
 PROPERTY_TYPES = {
     "vtkSMIntVectorProperty": "int32",
@@ -54,6 +71,7 @@ PANEL_WIDGETS = {
     "texture_selector": "skip",
     "transfer_function_editor": "skip",
     "FontEditor": "skip",
+    "camera_manipulator": "skip",
 }
 
 # Simple domain mapping to widget UI (i.e.: range -> slider)

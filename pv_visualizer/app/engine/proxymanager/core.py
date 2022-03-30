@@ -13,6 +13,8 @@ from simput.core import (
 )
 from simput.ui.web import VuetifyResolver
 
+from pv_visualizer.app.engine.proxymanager.const import SETTINGS_PROXIES
+
 from . import paraview, domains, definitions
 from .decorators import AdvancedDecorator
 
@@ -132,14 +134,20 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
 
             property = pv_proxy.GetProperty(name)
 
-            if isinstance(value, (list, tuple)):
-                for i, v in enumerate(value):
-                    property.SetUncheckedElement(i, v)
-            elif property.GetClassName() in [
+            if property.GetClassName() in [
                 "vtkSMInputProperty",
                 "vtkSMProxyProperty",
             ]:
-                property.SetUncheckedProxy(0, value)
+                if isinstance(value, (list, tuple)):
+                    for i, v in enumerate(value):
+                        if isinstance(v, Proxy):
+                            v = paraview.unwrap(v.object if v else None)
+                        property.SetUncheckedProxy(i, v)
+                else:
+                    property.SetUncheckedProxy(0, value)
+            elif isinstance(value, (list, tuple)):
+                for i, v in enumerate(value):
+                    property.SetUncheckedElement(i, v)
             else:
                 property.SetUncheckedElement(0, value)
 
@@ -192,6 +200,24 @@ class ParaviewProxyManager:
             Path(Path(__file__).parent / "definitions").resolve().absolute()
         )
 
+    def update_active_proxies(self):
+        setting_proxies = []
+        for item in SETTINGS_PROXIES:
+            setting_proxies.append(
+                {
+                    "name": item[0],
+                    "id": self.handle_proxy(simple.GetSettingsProxy(item[1])),
+                    "icon": item[2],
+                }
+            )
+        state.setting_proxies = setting_proxies
+
+        view = simple.GetActiveView()
+        if view is None:
+            view = simple.GetRenderView()
+            simple.SetActiveView(view)
+        state.view_id = self.handle_proxy(view)
+
     @property
     def factory(self):
         return self._factory
@@ -231,6 +257,7 @@ class ParaviewProxyManager:
 
         state.source_id = self.handle_proxy(source)
         state.representation_id = self.handle_proxy(representation)
+        state.view_id = self.handle_proxy(view)
         ctrl.pv_reaction_representation_scalarbar_update()
 
     def on_proxy_delete(self, pv_id):
@@ -359,9 +386,11 @@ class ParaviewProxyManager:
         self.reload_data()
         self.reload_domains()
 
+
 # -----------------------------------------------------------------------------
 
 PV_PXM = ParaviewProxyManager()
+PV_PXM.update_active_proxies()
 
 # -----------------------------------------------------------------------------
 # Life cycle listener
@@ -374,6 +403,7 @@ ctrl.on_active_proxy_change.add(ParaviewProxyManager().on_active_change)
 # ---------------------------------------------------------
 
 ctrl.pxm_refresh_active_proxies = PV_PXM.refresh_active_proxies
+
 
 @state.change("ui_advanced")
 def update_advanced(ui_advanced, **kwargs):

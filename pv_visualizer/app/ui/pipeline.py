@@ -26,7 +26,6 @@ COMPACT = {
 
 TOP_ICONS = [
     {"icon": "mdi-source-branch", "kwargs": ICON_STYLE},
-    {"icon": "mdi-palette", "kwargs": {}},
     {"icon": "mdi-clock-outline", "kwargs": {}},
     {"icon": "mdi-format-list-bulleted-type", "kwargs": {}},
 ]

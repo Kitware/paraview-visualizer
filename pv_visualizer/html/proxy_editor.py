@@ -10,14 +10,14 @@ DEFAULT_NAMES = [
         "name": "active_proxy_source_id",
         "icon": "mdi-database",
         "kwargs": {
-            "v_show": ("!!active_proxy_source_id",),
+            # "v_show": ("!!active_proxy_source_id",),
         },
     },
     {
         "name": "active_proxy_representation_id",
         "icon": "mdi-image-outline",
         "kwargs": {
-            "v_show": ("!!active_proxy_representation_id",),
+            # "v_show": ("!!active_proxy_representation_id",),
         },
     },
     {
@@ -25,11 +25,11 @@ DEFAULT_NAMES = [
         "icon": "mdi-cube-scan",
         "kwargs": {},
     },
-    {
-        "name": "active_proxy_view_id",  # FIXME setting proxy
-        "icon": "mdi-cog-outline",
-        "kwargs": {},
-    },
+    # {
+    #     "name": "active_proxy_view_id",  # FIXME setting proxy
+    #     "icon": "mdi-cog-outline",
+    #     "kwargs": {},
+    # },
 ]
 
 COMPACT = {
@@ -86,7 +86,7 @@ class ProxyEditor(Div):
             )
             with self.toolbar:
                 with vuetify.VTabs(
-                    v_model=("active_proxy_index", 0),
+                    v_model=("active_proxy_index", 2),
                     **COMPACT,
                     outlined=True,
                     rounded=True,
@@ -113,17 +113,19 @@ class ProxyEditor(Div):
                     vuetify.VIcon("mdi-check-bold")
 
             # DEBUG - WIP
-            with Div(style="overflow: auto;", classes="py-2"):
+            with Div(style="overflow: auto;", classes="py-2") as d:
                 simput.SimputItem(
-                    v_if=("active_proxy_index === 0",), itemId=("source_id",)
+                    v_if=("active_proxy_index === 0",), itemId=("source_id", 0)
                 )
                 simput.SimputItem(
-                    v_if=("active_proxy_index === 1",), itemId=("representation_id",)
+                    v_if=("active_proxy_index === 1",), itemId=("representation_id", 0)
+                )
+                simput.SimputItem(
+                    v_if=("active_proxy_index === 2",), itemId=("view_id", 0)
                 )
 
         # Attach state listener
         state.change("active_proxy_index", *self.var_names)(self.update_proxy_edit)
-        self.update_proxy_edit(0)
 
     def update_proxy_edit(self, active_proxy_index, **kwargs):
         state.active_proxy_id = state[self.var_names[active_proxy_index]]

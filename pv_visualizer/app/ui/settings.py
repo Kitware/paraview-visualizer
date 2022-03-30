@@ -1,5 +1,5 @@
 from trame import state, controller as ctrl
-from trame.html import Div, vuetify
+from trame.html import Div, vuetify, simput
 
 try:
     from paraview import simple
@@ -16,35 +16,25 @@ COMPACT = {
 }
 
 
-def to_float(hex):
-    return int(hex, 16) / 255.0
-
-
-def to_hex(float_value):
-    v = int(float_value * 255)
-    s = f"00{hex(v).split('x')[1]}"
-    return s[-2:]
-
-
-# Extract view BG color
-if simple is None:
-    view = None
-    VIEW_BG_HEX = "#ffffff"
-else:
-    view = simple.GetRenderView()
-    view.UseColorPaletteForBackground = 0
-    [red, green, blue] = view.Background
-    VIEW_BG_HEX = f"#{to_hex(red)}{to_hex(green)}{to_hex(blue)}"
-
-
-def create_card(title, reset_fn, **kwargs):
+def create_card(title, reset_fn=None, **kwargs):
     with vuetify.VCard(classes="pa-0", flat=True, outlined=False, tile=True, **kwargs):
         vuetify.VDivider()
         with vuetify.VCardTitle(classes="d-flex align-center py-1"):
             Div(title)
-            vuetify.VSpacer()
-            with vuetify.VBtn(icon=True, small=True, click=reset_fn):
-                vuetify.VIcon("mdi-restore")
+            if reset_fn is not None:
+                vuetify.VSpacer()
+                if isinstance(reset_fn, tuple):
+                    vuetify.VCheckbox(
+                        v_model=(reset_fn[0],),
+                        on_icon=reset_fn[1],
+                        off_icon=reset_fn[2],
+                        hide_details=True,
+                        dense=True,
+                        classes="mt-0 pt-0",
+                    )
+                else:
+                    with vuetify.VBtn(icon=True, small=True, click=reset_fn):
+                        vuetify.VIcon("mdi-restore")
         vuetify.VDivider()
         return vuetify.VCardText()
 
@@ -89,17 +79,16 @@ def create_panel(container):
                         classes="mr-2",
                     )
                     vuetify.VSwitch(
-                        v_model=("settings_advanced", False),
+                        v_model=("settings_advanced", True),
                         classes="ma-0",
                         hide_details=True,
                     )
 
-            with create_card("Background color", reset_bg_color):
-                vuetify.VColorPicker(
-                    v_model=("view_background", VIEW_BG_HEX),
-                    hide_mode_switch=True,
-                )
-            with create_card("State loading", reset_state_loading):
+            with create_card(
+                "State loading",
+                reset_state_loading,
+                v_if=("settings_advanced",),
+            ):
                 vuetify.VSwitch(
                     label="Data directory relative to file",
                     v_model=("settings_use_relative_path", True),
@@ -126,21 +115,41 @@ def create_panel(container):
                     **COMPACT,
                 )
 
+            with vuetify.VToolbar(
+                **COMPACT,
+                outlined=True,
+                classes="pa-0 ma-0 text-no-wrap",
+                v_if=("!settings_advanced",),
+            ):
+                vuetify.VCheckbox(
+                    label=("setting_proxies[settings_tabs].name",),
+                    v_model=("ui_advanced",),
+                    on_icon="mdi-pencil-box-multiple-outline",
+                    off_icon="mdi-pencil-box-outline",
+                    hide_details=True,
+                    dense=True,
+                    classes="mt-0 pt-0 ml-n2",
+                )
+                vuetify.VSpacer()
+                with vuetify.VTabs(
+                    v_model=("settings_tabs", 0),
+                    right=True,
+                    style=f"max-width: {40 * len(state.setting_proxies)}px;",
+                    **COMPACT,
+                ):
+                    for entry in state.setting_proxies:
+                        with vuetify.VTab(
+                            classes="px-0 mx-0",
+                            style="min-width: 40px;",
+                            **COMPACT,
+                        ):
+                            vuetify.VIcon(entry.get("icon"))
 
-@state.change("view_background")
-def update_background(view_background, **kwargs):
-    global view
-    view = simple.GetActiveView()
-    view.UseColorPaletteForBackground = 0
-    red = to_float(view_background[1:3])
-    green = to_float(view_background[3:5])
-    blue = to_float(view_background[5:7])
-    view.Background = [red, green, blue]
-    ctrl.view_update()
-
-
-def reset_bg_color():
-    state.view_background = VIEW_BG_HEX
+            for i, entry in enumerate(state.setting_proxies):
+                simput.SimputItem(
+                    v_if=(f"settings_tabs === {i} && !settings_advanced",),
+                    itemId=(f"setting_proxies[{i}].id",),
+                )
 
 
 def reset_remote_rendering():

@@ -4,7 +4,7 @@ import base64
 import xml.etree.ElementTree as ET
 
 from . import paraview, domains
-from .const import PROPERTY_TYPES, DECORATOR_ATTRS
+from .const import PROPERTY_TYPES, DECORATOR_ATTRS, AUTO_COMMIT_XML_GROUPS
 
 try:
     from paraview import servermanager
@@ -167,13 +167,28 @@ def property_yaml(property):
     property_definition["type"] = PROPERTY_TYPES[property.GetClassName()]
 
     # Might not be correct
-    size = (
-        property.GetNumberOfElements()
-        if hasattr(property, "GetNumberOfElements")
-        else 1
-    )
+    size = 1
+    if hasattr(property, "GetNumberOfElements"):
+        size = property.GetNumberOfElements()
+    if hasattr(property, "GetNumberOfProxies"):
+        size = property.GetNumberOfProxies()
+
     if size > 1:
         property_definition["size"] = size
+
+    if size == 0:
+        property_definition["size"] = -1
+
+    # Skip proxy property with n proxies (??? FIXME ???)
+    # currently simput don't properly manage list of proxy as property...
+    # i.e. views.RenderView.Representations
+    if property_definition["type"] == "proxy" and size != 1:
+        print(
+            "Skip multi-proxy property",
+            property.GetParent().GetXMLName(),
+            property.GetXMLName(),
+        )
+        return False
 
     # Domains
     property_definition["domains"] = [
@@ -269,7 +284,7 @@ def proxy_model(proxy):
     # Make representations and views proxy auto apply
     _tags = []
     proxy_definition = {"_tags": _tags}
-    if proxy.GetXMLGroup() in ["representations", "views"]:
+    if proxy.GetXMLGroup() in AUTO_COMMIT_XML_GROUPS:
         _tags.append("auto_commit")
 
     # Track all the properties
