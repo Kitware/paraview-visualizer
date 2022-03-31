@@ -15,7 +15,7 @@ from simput.ui.web import VuetifyResolver
 
 from pv_visualizer.app.engine.proxymanager.const import SETTINGS_PROXIES
 
-from . import paraview, domains, definitions
+from . import paraview, domains, definitions, data_informations
 from .decorators import AdvancedDecorator
 
 try:
@@ -206,6 +206,7 @@ class ParaviewProxyManager:
         # No active simput proxy just yet
         state.source_id = 0
         state.representation_id = 0
+        state.active_data_information = {}
 
         # Debug
         self._write_definitions_base = str(
@@ -271,6 +272,7 @@ class ParaviewProxyManager:
         state.representation_id = self.handle_proxy(representation)
         state.view_id = self.handle_proxy(view)
         ctrl.pv_reaction_representation_scalarbar_update()
+        data_informations.update_data_information(source)
 
     def on_proxy_delete(self, pv_id):
         pv_view = simple.GetActiveView()

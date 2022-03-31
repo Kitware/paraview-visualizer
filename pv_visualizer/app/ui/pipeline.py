@@ -1,11 +1,10 @@
 from trame import controller as ctrl
 from trame.html import Div, vuetify
-from pv_visualizer.html import pipeline
-from pv_visualizer.html import proxy_editor
+from pv_visualizer.html import pipeline, proxy_editor, data_information
 
 
 def on_reload(reload_modules):
-    reload_modules(pipeline, proxy_editor)
+    reload_modules(pipeline, proxy_editor, data_information)
 
 
 # -----------------------------------------------------------------------------
@@ -26,8 +25,8 @@ COMPACT = {
 
 TOP_ICONS = [
     {"icon": "mdi-source-branch", "kwargs": ICON_STYLE},
-    {"icon": "mdi-clock-outline", "kwargs": {}},
     {"icon": "mdi-format-list-bulleted-type", "kwargs": {}},
+    {"icon": "mdi-clock-outline", "kwargs": {}},
 ]
 
 
@@ -70,10 +69,10 @@ def create_panel(container):
                 v_if=("show_pipeline", 1),
             ):
                 pipeline_browser = pipeline.PipelineBrowser(
-                    v_show=("pipeline_elem === 0",),
                     width=container.width,
                 )
                 ctrl.pipeline_update = pipeline_browser.update
 
             # editor part
-            proxy_editor.ProxyEditor(v_if=(f"pipeline_elem === 0",))
+            proxy_editor.ProxyEditor(v_if=("pipeline_elem === 0",))
+            data_information.DataInformation(v_show=("pipeline_elem === 1",))
