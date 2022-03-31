@@ -394,9 +394,7 @@ class ParaviewProxyManager:
             simput_rep = self._pxm.get(_id)
             if simput_rep:
                 simput_rep.fetch()
-
-        self.reload_data()
-        self.reload_domains()
+            ctrl.simput_push(proxy=_id)
 
 
 # -----------------------------------------------------------------------------
