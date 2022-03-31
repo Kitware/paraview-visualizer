@@ -44,11 +44,15 @@ class PipelineBrowser(GitTree):
             action=(self.on_action, "[]", "$event"),
             **kwargs,
         )
+        self._deleted_ids = set()
 
     def on_active_change(self, active_ids, **kwargs):
         proxy = None
         if len(active_ids):
-            proxy = id_to_proxy(active_ids[0])
+            _id = active_ids[0]
+            if _id in self._deleted_ids:
+                return
+            proxy = id_to_proxy(_id)
 
         simple.SetActiveSource(proxy)
         self.update_active()
@@ -67,7 +71,9 @@ class PipelineBrowser(GitTree):
 
     def on_action(self, id, action):
         if action == "delete":
+            self._deleted_ids.add(id)
             ctrl.on_delete(id)
+            self.update()
 
     def update_active(self, **kwargs):
         actives = []

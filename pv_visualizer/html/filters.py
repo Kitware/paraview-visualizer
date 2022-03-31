@@ -1,10 +1,5 @@
-from trame import state, controller as ctrl
+from trame import state
 from trame.html.widgets import ListBrowser
-
-try:
-    from paraview import simple
-except:
-    simple = None
 
 SOURCES = [
     "Cone",
@@ -22,12 +17,13 @@ FILTERS = [
 
 
 class Algorithms(ListBrowser):
-    def __init__(self, add_defaults=True, **kwargs):
+    def __init__(self, add_defaults=True, click=None, **kwargs):
         super().__init__(
             list=("algorithm_list", []),
             click=(self._click, "[$event.value]"),
             **kwargs,
         )
+        self._click_fn = click
 
         if add_defaults:
             state.algorithm_list = []
@@ -49,8 +45,5 @@ class Algorithms(ListBrowser):
     def _click(self, index):
         entry = state.algorithm_list[index]
         name = entry.get("text")
-        newProxy = simple.__dict__[name]()
-        rep = simple.Show(newProxy)
-
-        # Use life cycle handler
-        ctrl.on_data_change()
+        if self._click_fn:
+            self._click_fn(name)

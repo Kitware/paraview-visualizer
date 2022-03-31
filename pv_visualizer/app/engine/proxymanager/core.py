@@ -274,6 +274,13 @@ class ParaviewProxyManager:
 
     def on_proxy_delete(self, pv_id):
         pv_view = simple.GetActiveView()
+        pv_active = simple.GetActiveSource()
+
+        # clear active proxy if deleted one
+        if pv_active and pv_active.GetGlobalIDAsString() == pv_id:
+            state.source_id = "0"
+            state.representation_id = "0"
+            simple.SetActiveSource(None)
 
         s_source_id = self._id_pv_to_simput[pv_id]
         s_source = self._pxm.get(s_source_id)
