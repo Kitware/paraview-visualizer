@@ -1,4 +1,4 @@
-<v-col fluid style="position: relative" v-show="decorator.show">
+<v-col fluid style="position: relative" v-show="shouldShowDecorator">
   <div style="position: absolute; right: 10px; top: -1px; z-index: 1;">
     <v-btn v-if="help" icon x-small @click="showHelp = !showHelp">
       <v-icon small>mdi-lifebuoy</v-icon>

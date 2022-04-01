@@ -75,7 +75,14 @@ layout = SinglePageWithDrawer(
     on_ready=ctrl.view_update,
 )
 
-_simput = simput.Simput(PXM.ui_manager, PXM.pdm, prefix="pxm", ref="simput")
+_simput = simput.Simput(
+    PXM.ui_manager,
+    PXM.pdm,
+    prefix="pxm",
+    ref="simput",
+    query=("search", ""),
+)
+
 ctrl.simput_push = _simput.push
 layout.root = _simput
 

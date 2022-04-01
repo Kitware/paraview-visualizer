@@ -83,6 +83,7 @@ class ParaViewDecoratorDomain(PropertyDomain):
             return {
                 "show": self._decorator.can_show(),
                 "enable": self._decorator.enable_widget(),
+                "query": self._decorator.can_query(),
             }
 
         return {}

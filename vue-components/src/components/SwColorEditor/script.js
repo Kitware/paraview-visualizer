@@ -1,4 +1,9 @@
-import { floatToHex2, debounce, areEquals } from '../../utils';
+import {
+  floatToHex2,
+  debounce,
+  areEquals,
+  shouldShowTextToQuery,
+} from '../../utils';
 
 let COUNT = 1;
 
@@ -29,6 +34,10 @@ export default {
       // May have an issue for beeing 2 calls instead of just 1!
       this.dirtyMany('AmbientColor', 'DiffuseColor');
     }, 100);
+    this.onQuery = (query) => {
+      this.query = query;
+    };
+    this.simputChannel.$on('query', this.onQuery);
   },
   mounted() {
     COUNT++;
@@ -36,12 +45,14 @@ export default {
   },
   beforeDestroy() {
     this.simputChannel.$off('templateTS', this.onUpdateUI);
+    this.simputChannel.$off('query', this.onQuery);
   },
   data() {
     return {
       tsKey: '__default__',
       componentMode: 'Magnitude',
       editingMode: null,
+      query: '',
     };
   },
   watch: {
@@ -50,6 +61,10 @@ export default {
     },
   },
   computed: {
+    textToQuery() {
+      return `${this.label} ${this.colorMode}`.toLowerCase();
+    },
+    shouldShowTextToQuery,
     scalarBarVisible() {
       return this.get('active_representation_scalarbar_visibility');
     },

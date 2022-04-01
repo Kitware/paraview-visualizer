@@ -115,13 +115,16 @@ class ProxyEditor(Div):
             # DEBUG - WIP
             with Div(style="overflow: auto;", classes="py-2") as d:
                 simput.SimputItem(
-                    v_if=("active_proxy_index === 0",), itemId=("source_id", 0)
+                    v_if=("active_proxy_index === 0",),
+                    itemId=("source_id", 0),
                 )
                 simput.SimputItem(
-                    v_if=("active_proxy_index === 1",), itemId=("representation_id", 0)
+                    v_if=("active_proxy_index === 1",),
+                    itemId=("representation_id", 0),
                 )
                 simput.SimputItem(
-                    v_if=("active_proxy_index === 2",), itemId=("view_id", 0)
+                    v_if=("active_proxy_index === 2",),
+                    itemId=("view_id", 0),
                 )
 
         # Attach state listener

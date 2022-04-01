@@ -1,4 +1,5 @@
-// need to call vtkSMPVRepresentationProxy::SetRepresentationType
+import { shouldShowDecorator } from '../../utils';
+
 export default {
   name: 'swDisplayRepresentationSelector',
   props: {
@@ -27,17 +28,24 @@ export default {
     };
     this.simputChannel.$on('templateTS', this.onUpdateUI);
     this.onUpdateUI();
+    this.onQuery = (query) => {
+      this.query = query;
+    };
+    this.simputChannel.$on('query', this.onQuery);
   },
   beforeDestroy() {
     this.simputChannel.$off('templateTS', this.onUpdateUI);
+    this.simputChannel.$off('query', this.onQuery);
   },
   data() {
     return {
       showHelp: false,
       tsKey: '__default__',
+      query: '',
     };
   },
   computed: {
+    shouldShowDecorator,
     model: {
       get() {
         /* eslint-disable no-unused-expressions */
@@ -55,6 +63,7 @@ export default {
         this.domains()[this.name]?.decorator?.available || {
           show: true,
           enable: true,
+          query: true,
         }
       );
     },

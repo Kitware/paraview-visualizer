@@ -21,6 +21,9 @@ class AdvancedDecorator:
     def enable_widget(self):
         return True
 
+    def can_query(self):
+        return True
+
 
 class DecoratorMode:
     VISIBILITY = "visibility"
@@ -165,6 +168,9 @@ class GenericDecorator:
         self._update_state()
         return self._enabled
 
+    def can_query(self):
+        return self.can_show()
+
 
 # -----------------------------------------------------------------------------
 
@@ -209,6 +215,9 @@ class InputDataTypeDecorator:
             return self._process_state()
 
         return True
+
+    def can_query(self):
+        return self.can_show()
 
 
 # -----------------------------------------------------------------------------
@@ -265,6 +274,9 @@ class ExpressionDecorator:
             value = self._operation(value, decorator.enable_widget())
         return value
 
+    def can_query(self):
+        return self.can_show()
+
 
 class CompositeDecorator:
     def __init__(self, proxy, hint):
@@ -278,6 +290,9 @@ class CompositeDecorator:
 
     def enable_widget(self):
         return self._internal.enable_widget()
+
+    def can_query(self):
+        return self.can_show()
 
 
 # -----------------------------------------------------------------------------
@@ -319,6 +334,9 @@ class BoolPropertyDecorator:
     def enable_widget(self):
         return True
 
+    def can_query(self):
+        return self.can_show()
+
 
 class ShowWidgetDecorator(BoolPropertyDecorator):
     def can_show(self):
@@ -346,6 +364,9 @@ class OSPRayHidingDecorator:
     def enable_widget(self):
         return True
 
+    def can_query(self):
+        return self.can_show()
+
 
 # -----------------------------------------------------------------------------
 
@@ -363,6 +384,9 @@ class MultiComponentsDecorator:
 
     def enable_widget(self):
         return True
+
+    def can_query(self):
+        return self.can_show()
 
 
 # -----------------------------------------------------------------------------

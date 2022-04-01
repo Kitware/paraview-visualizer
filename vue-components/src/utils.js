@@ -36,3 +36,56 @@ export function debounce(func, wait = 100) {
 
   return debounced;
 }
+
+export function shouldShow() {
+  if (this.query) {
+    const txt = this.label.toLowerCase();
+    const tokens = this.query.split(' ');
+    if (tokens.length > 1) {
+      for (let i = 0; i < tokens.length; i++) {
+        const t = tokens[i].trim();
+        if (t && txt.includes(t)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return txt.includes(this.query);
+  }
+  return true;
+}
+
+export function shouldShowTextToQuery() {
+  if (this.query) {
+    const tokens = this.query.split(' ');
+    if (tokens.length > 1) {
+      for (let i = 0; i < tokens.length; i++) {
+        const t = tokens[i].trim();
+        if (t && this.textToQuery.includes(t)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return this.textToQuery.includes(this.query);
+  }
+  return true;
+}
+
+export function shouldShowDecorator() {
+  if (this.query && this.decorator.query) {
+    const txt = this.label.toLowerCase();
+    const tokens = this.query.split(' ');
+    if (tokens.length > 1) {
+      for (let i = 0; i < tokens.length; i++) {
+        const t = tokens[i].trim();
+        if (t && txt.includes(t)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    return txt.includes(this.query);
+  }
+  return this.decorator.show;
+}

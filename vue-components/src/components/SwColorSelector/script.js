@@ -1,4 +1,9 @@
-import { floatToHex2, debounce, areEquals } from '../../utils';
+import {
+  floatToHex2,
+  debounce,
+  areEquals,
+  shouldShowDecorator,
+} from '../../utils';
 
 export default {
   name: 'swColorSelector',
@@ -28,6 +33,7 @@ export default {
     return {
       color: '#ffffff',
       showHelp: false,
+      query: '',
     };
   },
   created() {
@@ -37,8 +43,16 @@ export default {
         this.dirty(this.name);
       }
     }, 100);
+    this.onQuery = (query) => {
+      this.query = query;
+    };
+    this.simputChannel.$on('query', this.onQuery);
+  },
+  beforeDestroy() {
+    this.simputChannel.$off('query', this.onQuery);
   },
   computed: {
+    shouldShowDecorator,
     model: {
       get() {
         /* eslint-disable no-unused-expressions */
@@ -67,6 +81,7 @@ export default {
         this.domains()[this.name]?.decorator?.available || {
           show: true,
           enable: true,
+          query: true,
         }
       );
     },
@@ -76,5 +91,12 @@ export default {
       return this.domains()?.[this.name]?.hints || [];
     },
   },
-  inject: ['data', 'properties', 'domains', 'dirty', 'getSimput'],
+  inject: [
+    'simputChannel',
+    'data',
+    'properties',
+    'domains',
+    'dirty',
+    'getSimput',
+  ],
 };
