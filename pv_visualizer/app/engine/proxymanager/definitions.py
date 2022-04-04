@@ -102,6 +102,7 @@ def property_widget_decorator_advanced_yaml(property):
                 "type": "ParaViewDecoratorDomain",
                 "properties": {
                     "type": "AdvancedDecorator",
+                    "name": property.GetXMLName(),
                 },
             }
         ]

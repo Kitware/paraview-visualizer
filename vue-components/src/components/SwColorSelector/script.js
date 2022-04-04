@@ -52,7 +52,7 @@ export default {
     this.simputChannel.$off('query', this.onQuery);
   },
   computed: {
-    shouldShowDecorator,
+    shouldShow: shouldShowDecorator,
     model: {
       get() {
         /* eslint-disable no-unused-expressions */

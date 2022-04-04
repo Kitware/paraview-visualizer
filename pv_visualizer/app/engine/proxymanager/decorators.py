@@ -12,10 +12,19 @@ r"""
 class AdvancedDecorator:
     advance_mode = False
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, proxy, hint):
+        self._proxy = proxy
+        self._name = hint.get("name")
+        self._property = self._proxy.GetProperty(self._name)
+        self._default_rep = self._property.GetPanelVisibilityDefaultForRepresentation()
+        self._rep_property = self._proxy.GetProperty("Representation")
+        if self._default_rep:
+            self._default_rep = self._default_rep.lower()
 
     def can_show(self):
+        if self._default_rep:
+            selected = self._rep_property.GetElement(0).lower()
+            return selected == self._default_rep
         return AdvancedDecorator.advance_mode
 
     def enable_widget(self):
