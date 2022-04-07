@@ -1,6 +1,9 @@
-## Building paraview-visualizer docker image
+## Building paraview-visualizer docker image (Linux only)
 
-`./docker/scripts/build_image.sh`
+```bash
+export TRAME_PARAVIEW=/path/to/your/paraview/home
+./docker/scripts/build_image.sh
+```
 
 ## Running your bundle
 
