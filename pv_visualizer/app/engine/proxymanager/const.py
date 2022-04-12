@@ -86,6 +86,9 @@ WIDGETS = {
     "vtkSMRepresentationTypeDomain": "sw-select",
     "vtkSMProxyListDomain": "sw-select",
     "vtkSMArrayListDomain": "sw-select",
+    # custom widgets
+    "vtkSMArrayRangeDomain": "sw-scalar-range",
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # text-field ???????????????????????
     # "vtkSMDataTypeDomain": "sw-text-field",
     # "vtkSMInputArrayDomain": "sw-text-field",
@@ -93,7 +96,6 @@ WIDGETS = {
     # "vtkSMDataAssemblyDomain": "sw-text-field",
     # "vtkSMRepresentedArrayListDomain": "sw-text-field",
     # "vtkSMBoundsDomain": "sw-text-field",
-    # "vtkSMArrayRangeDomain": "sw-text-field",
     # "vtkSMNumberOfComponentsDomain": "sw-text-field",
     # "vtkSMRangedTransferFunctionDomain": "sw-text-field",
     # "vtkSMMaterialDomain": "sw-text-field",
@@ -117,13 +119,13 @@ DOMAIN_TYPES = {
     "vtkSMProxyListDomain": domain_helpers.domain_list_proxies_simput_ids,
     "vtkSMArrayListDomain": domain_helpers.domain_list_arrays,
     "vtkSMRepresentedArrayListDomain": domain_helpers.domain_list_arrays,
+    "vtkSMArrayRangeDomain":  domain_helpers.domain_range,
     # ------------------------------------------------
     "vtkSMDataTypeDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMInputArrayDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMProxyGroupDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMDataAssemblyDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMBoundsDomain": DOMAIN_TYPE_DEFAULT,
-    "vtkSMArrayRangeDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMNumberOfComponentsDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMRangedTransferFunctionDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMMaterialDomain": DOMAIN_TYPE_DEFAULT,

@@ -174,10 +174,13 @@ def property_yaml(property):
     if hasattr(property, "GetNumberOfProxies"):
         size = property.GetNumberOfProxies()
 
+    if property.GetRepeatable():
+        size = -1
+
     if size > 1:
         property_definition["size"] = size
 
-    if size == 0:
+    if size < 1:
         property_definition["size"] = -1
 
     # Skip proxy property with n proxies (??? FIXME ???)

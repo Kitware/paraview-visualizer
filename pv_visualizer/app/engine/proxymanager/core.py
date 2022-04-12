@@ -46,6 +46,8 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
             property = pv_proxy.GetProperty(name)
 
             if isinstance(value, (list, tuple)):
+                if len(value) != property.GetNumberOfElements():
+                    property.SetNumberOfElements(len(value))
                 for i, v in enumerate(value):
                     before = property.GetElement(i)
                     property.SetElement(i, v)
@@ -146,6 +148,8 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
                 else:
                     property.SetUncheckedProxy(0, value)
             elif isinstance(value, (list, tuple)):
+                if len(value) != property.GetNumberOfUncheckedElements():
+                    property.SetNumberOfUncheckedElements(len(value))
                 for i, v in enumerate(value):
                     property.SetUncheckedElement(i, v)
             else:
