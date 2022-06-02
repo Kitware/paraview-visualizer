@@ -159,5 +159,5 @@ def create_panel(server):
         for i, entry in enumerate(state.setting_proxies):
             simput.SimputItem(
                 v_if=(f"settings_tabs === {i} && !settings_advanced",),
-                itemId=(f"setting_proxies[{i}].id",),
+                item_id=(f"setting_proxies[{i}].id",),
             )

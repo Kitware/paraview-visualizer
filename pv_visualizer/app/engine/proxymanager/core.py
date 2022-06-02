@@ -190,6 +190,7 @@ class ParaviewProxyManager:
             object_factory=self._factory,
             object_adapter=ParaViewProxyObjectAdapter(),
         )
+
         self._pxm = self._simput.proxymanager
         self._pxm.on(self.on_pxm_event)
 

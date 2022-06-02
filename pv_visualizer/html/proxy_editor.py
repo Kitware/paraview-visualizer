@@ -112,21 +112,18 @@ class ProxyEditor(html.Div):
                     vuetify.VIcon("mdi-check-bold")
 
             # DEBUG - WIP
-            with html.Div(style="overflow: auto;", classes="py-2") as d:
-                d.add_child(
-                    "source_id {{ source_id }} - active_proxy_index {{ active_proxy_index }}"
-                )
+            with html.Div(style="overflow: auto;", classes="py-2"):
                 simput.SimputItem(
                     v_if=("active_proxy_index === 0",),
-                    itemId=("source_id", 0),
+                    item_id=("source_id", 0),
                 )
                 simput.SimputItem(
                     v_if=("active_proxy_index === 1",),
-                    itemId=("representation_id", 0),
+                    item_id=("representation_id", 0),
                 )
                 simput.SimputItem(
                     v_if=("active_proxy_index === 2",),
-                    itemId=("view_id", 0),
+                    item_id=("view_id", 0),
                 )
 
         # Attach state listener

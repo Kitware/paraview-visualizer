@@ -12,7 +12,6 @@ from paraview import simple
 
 def initialize(server):
     args, _ = server.cli.parse_known_args()
-    print("Got args", args)
     #
     pxm = ParaviewProxyManager()
     pxm.set_server(server)
