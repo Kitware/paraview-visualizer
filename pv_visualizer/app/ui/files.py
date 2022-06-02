@@ -29,13 +29,13 @@ def initialize(server):
     def load_file(files):
         active_change = False
         if isinstance(files, list):
-            # time serie
+            # time series
             files_to_load = map(add_prefix, files)
             reader = simple.OpenDataFile(files_to_load)
-            simple.Show(reader)  # Should be defered
+            simple.Show(reader)  # Should be deferred
         elif files.endswith(".pvsm"):
             # state file
-            v1 = simple.Render()
+            simple.Render()
             state_to_load = add_prefix(files)
             if state.settings_use_relative_path:
                 simple.LoadState(
@@ -54,7 +54,7 @@ def initialize(server):
             # data file
             data_to_load = add_prefix(files)
             reader = simple.OpenDataFile(data_to_load)
-            simple.Show(reader)  # Should be defered
+            simple.Show(reader)  # Should be deferred
 
         # Update state
         state.active_controls = pipeline_name

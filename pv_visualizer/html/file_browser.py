@@ -152,7 +152,7 @@ class ParaViewPathResolver:
         RPC Callback to list a server directory relative to the basePath
         provided at start-up.
         """
-        if self.multiRoot == True:
+        if self.multiRoot:
             return self.handleMultiRoot(relativeDir)
         else:
             return self.handleSingleRoot(self.baseDirectory, relativeDir)

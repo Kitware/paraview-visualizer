@@ -7,7 +7,7 @@ REACTIONS = [
     representation,
 ]
 
-# Bind reactions from map
+
 def register_triggers(ctrl, mapping):
     for key, fn in mapping.items():
         ctrl[key] = fn

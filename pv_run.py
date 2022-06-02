@@ -2,7 +2,7 @@ r"""
 Should run this file when running with pvpython while setting PV_VENV=
 """
 from pathlib import Path
-import paraview.web.venv
+import paraview.web.venv  # noqa to get venv loaded
 from pv_visualizer import main
 from trame.app import get_server
 

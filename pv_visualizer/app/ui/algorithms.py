@@ -17,7 +17,7 @@ def initialize(server):
 
     def create_filter(name):
         newProxy = simple.__dict__[name]()
-        rep = simple.Show(newProxy)
+        simple.Show(newProxy)
 
         # Update state
         state.active_controls = pipeline_name

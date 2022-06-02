@@ -1,4 +1,4 @@
-import os
+from . import domain_helpers
 
 # -----------------------------------------------------------------------------
 # DEBUG Simput state exchange
@@ -106,7 +106,6 @@ WIDGETS = {
 # -----------------------------------------------------------------------------
 # ParaView Domain class to extract helper
 # -----------------------------------------------------------------------------
-from . import domain_helpers
 
 DOMAIN_TYPE_DEFAULT = domain_helpers.domain_unknown
 

@@ -99,7 +99,7 @@ class GenericDecorator:
 
         try:
             nb_elements = self._property.GetNumberOfElements()
-        except:
+        except Exception:
             nb_elements = self._property.GetNumberOfProxies()
 
         if nb_elements == 0:

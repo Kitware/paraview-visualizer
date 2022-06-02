@@ -30,7 +30,7 @@ def initialize(server, mapper):
             if lut:
                 lut.RescaleTransferFunction(data_range[0], data_range[1])
                 if separateOpacity:
-                    if opacity_range == None:
+                    if opacity_range is None:
                         opacity_range = data_range
                     lut.ScalarOpacityFunction.RescaleTransferFunction(
                         opacity_range[0], opacity_range[1]

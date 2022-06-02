@@ -10,7 +10,7 @@ PXM = servermanager.ProxyManager()
 def id_to_proxy(_id):
     try:
         _id = int(_id)
-    except:
+    except Exception:
         return None
     if _id <= 0:
         return None

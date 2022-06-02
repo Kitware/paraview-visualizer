@@ -43,7 +43,7 @@ def initialize(server, mapper):
         arrayname = rep.ColorArrayName.GetArrayName()
         component = None
 
-        if value == None or value[0] == None:
+        if value is None or value[0] is None:
             rep.SetScalarColoring(None, association)
             return
 

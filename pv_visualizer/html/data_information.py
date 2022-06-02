@@ -3,6 +3,8 @@ from trame.widgets import vuetify
 # -----------------------------------------------------------------------------
 # Utils
 # -----------------------------------------------------------------------------
+
+
 def create_group(title, **kwargs):
     content = None
     with vuetify.VCol(classes="px-0 mx-0", **kwargs):
@@ -33,7 +35,7 @@ def create_line(available, label, value, label_size=4):
 
 def create_file_property():
     available = "active_data_information.file"
-    with create_group("File Properties", v_if=(available,)) as content:
+    with create_group("File Properties", v_if=(available,)):
         create_na_line(available)
         create_line(available, "Name", "{{ active_data_information.file.name }}")
         create_line(available, "Path", "{{ active_data_information.file.path }}")
@@ -42,7 +44,7 @@ def create_file_property():
 # -----------------------------------------------------------------------------
 def create_data_stats():
     available = "active_data_information.data_stats"
-    with create_group("Data Statistics", v_if=(available,)) as content:
+    with create_group("Data Statistics", v_if=(available,)):
         create_na_line(available)
         create_line(available, "Type", "{{ active_data_information.data_stats.type }}")
         create_line(
@@ -67,9 +69,7 @@ def create_data_stats():
 
 
 def create_data_arrays():
-    with create_group(
-        "Data Arrays", v_if=("active_data_information.arrays",)
-    ) as content:
+    with create_group("Data Arrays", v_if=("active_data_information.arrays",)):
         with vuetify.VDataTable(
             dense=True,
             height=200,
@@ -78,7 +78,7 @@ def create_data_arrays():
             disable_pagination=True,
             hide_default_footer=True,
             headers=("active_data_information.arrays.header",),
-            items=(f"active_data_information.arrays.values",),
+            items=("active_data_information.arrays.values",),
         ):
             with vuetify.Template(
                 v_slot_item_name="{item}",
@@ -89,7 +89,7 @@ def create_data_arrays():
 
 
 def create_time():
-    with create_group("Time", v_if=("active_data_information.times",)) as content:
+    with create_group("Time", v_if=("active_data_information.times",)):
         vuetify.VDataTable(
             height=200,
             dense=True,
@@ -97,7 +97,7 @@ def create_time():
             disable_pagination=True,
             hide_default_footer=True,
             headers=("active_data_information.times.header",),
-            items=(f"active_data_information.times.values",),
+            items=("active_data_information.times.values",),
         )
 
 

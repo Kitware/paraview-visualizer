@@ -12,7 +12,7 @@ def unwrap(obj):
 def id_to_proxy(poxy_id):
     try:
         poxy_id = int(poxy_id)
-    except:
+    except Exception:
         return None
     if poxy_id <= 0:
         return None
