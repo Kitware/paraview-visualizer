@@ -2,14 +2,16 @@ from pathlib import Path
 from trame.app import get_server, dev
 from . import engine, ui
 
+SERVER = None
+
 
 def _reload():
-    server = get_server()
     dev.reload(ui)
-    ui.initialize(server)
+    ui.initialize(SERVER)
 
 
 def main(server=None, **kwargs):
+    global SERVER
     if server is None:
         server = get_server()
 
@@ -17,6 +19,7 @@ def main(server=None, **kwargs):
     server.controller.on_server_reload.add(_reload)
 
     # Init application
+    SERVER = server
     engine.initialize(server)
     ui.initialize(server)
 
