@@ -1,10 +1,10 @@
-from trame import controller as ctrl
-from trame.html import vuetify
+from trame.widgets import vuetify
 
 STYLE = {"small": True, "icon": True}
 
 
-def create_view_toolbox():
+def create_view_toolbox(server):
+    ctrl = server.controller
     with vuetify.VCard(
         elevation=3,
         classes="d-flex flex-column rounded-lg pa-1",

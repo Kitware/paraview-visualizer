@@ -1,16 +1,10 @@
-from trame import state, controller as ctrl
-from trame.html.widgets import GitTree
+from trame.widgets.trame import GitTree
+from paraview import simple, servermanager
 
-from .assets import ASSET_MANAGER
+from pv_visualizer.app.assets import asset_manager
+from . import module
 
-try:
-    from paraview import simple, servermanager
-
-    PXM = servermanager.ProxyManager()
-except:
-    simple = None
-    servermanager = None
-    PXM = None
+PXM = servermanager.ProxyManager()
 
 
 def id_to_proxy(_id):
@@ -36,7 +30,7 @@ class PipelineBrowser(GitTree):
             ),
             width=width,
             # Actions
-            action_map=("pipeline_actions", {"delete": ASSET_MANAGER.icon_delete}),
+            action_map=("pipeline_actions", {"delete": asset_manager.icon_delete}),
             action_size=20,
             # Events
             actives_change=(self.on_active_change, "[$event]"),
@@ -45,6 +39,7 @@ class PipelineBrowser(GitTree):
             **kwargs,
         )
         self._deleted_ids = set()
+        self.server.enable_module(module)
 
     def on_active_change(self, active_ids, **kwargs):
         proxy = None
@@ -58,7 +53,7 @@ class PipelineBrowser(GitTree):
         self.update_active()
 
         # Use life cycle handler
-        ctrl.on_active_proxy_change()
+        self.server.controller.on_active_proxy_change()
 
     def on_visibility_change(self, id, visible, **kwargs):
         proxy = id_to_proxy(id)
@@ -67,12 +62,12 @@ class PipelineBrowser(GitTree):
         representation.Visibility = 1 if visible else 0
 
         # Use life cycle handler
-        ctrl.on_data_change()
+        self.server.controller.on_data_change()
 
     def on_action(self, id, action):
         if action == "delete":
             self._deleted_ids.add(id)
-            ctrl.on_delete(id)
+            self.server.controller.on_delete(id)
             self.update()
 
     def update_active(self, **kwargs):
@@ -80,7 +75,7 @@ class PipelineBrowser(GitTree):
         active_proxy = simple.GetActiveSource()
         if active_proxy:
             actives.append(active_proxy.GetGlobalIDAsString())
-        state.pipeline_actives = actives
+        self.server.state.pipeline_actives = actives
 
     def update_sources(self, **kwargs):
         sources = []
@@ -124,7 +119,7 @@ class PipelineBrowser(GitTree):
         for leaf in leaves:
             node_map[leaf]["actions"] = ["delete"]
 
-        state.pipeline_sources = sources
+        self.server.state.pipeline_sources = sources
 
     def update(self, **kwargs):
         self.update_sources(**kwargs)

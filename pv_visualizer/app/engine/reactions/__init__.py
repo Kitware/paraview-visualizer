@@ -1,7 +1,5 @@
 from . import camera, scalar_range, representation
 
-from trame import controller as ctrl
-
 # List of all reactions modules
 REACTIONS = [
     camera,
@@ -10,12 +8,12 @@ REACTIONS = [
 ]
 
 # Bind reactions from map
-def register_triggers(mapping):
+def register_triggers(ctrl, mapping):
     for key, fn in mapping.items():
         ctrl[key] = fn
         ctrl.trigger(key)(ctrl[key])
 
 
-def register_reactions():
+def register_reactions(server):
     for reaction in REACTIONS:
-        register_triggers(reaction.TRIGGER_MAPPING)
+        reaction.initialize(server, register_triggers)

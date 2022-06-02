@@ -1,21 +1,22 @@
 r"""
 Define your classes and create the instances that you need to expose
 """
-from ..cli import get_args
 from .reactions import register_reactions
-
-try:
-    from paraview import simple
-except:
-    simple = None
+from .proxymanager import ParaviewProxyManager
+from paraview import simple
 
 # ---------------------------------------------------------
 # Methods
 # ---------------------------------------------------------
 
 
-def initialize():
-    args = get_args()
+def initialize(server):
+    args, _ = server.cli.parse_known_args()
+    print("Got args", args)
+    #
+    pxm = ParaviewProxyManager()
+    pxm.set_server(server)
+
     plugins = args.plugins.split(",") if args.plugins else []
     if plugins:
         print("\nLoading ParaView plugins:")
@@ -25,9 +26,4 @@ def initialize():
         print()
 
     # Bind methods to controller + trigger name
-    register_reactions()
-
-
-# ---------------------------------------------------------
-# Listeners
-# ---------------------------------------------------------
+    register_reactions(server)

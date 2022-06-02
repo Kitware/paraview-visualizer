@@ -1,5 +1,3 @@
-from trame import state
-
 VTK_DATA_TYPES = [
     "void",  # define VTK_VOID 0
     "bit",  # define VTK_BIT 1
@@ -218,6 +216,6 @@ def data_information_transform_proxy(proxy):
     return result
 
 
-def update_data_information(proxy):
-    state.active_data_information = data_information_transform_proxy(proxy)
+def get_data_information(proxy):
+    return data_information_transform_proxy(proxy)
     # state.active_data_information = data_information_transform(SAMPLE_DATA_INFORMATION)

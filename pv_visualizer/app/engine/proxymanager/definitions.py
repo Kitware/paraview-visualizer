@@ -6,10 +6,7 @@ import xml.etree.ElementTree as ET
 from . import paraview, domains
 from .const import PROPERTY_TYPES, DECORATOR_ATTRS, AUTO_COMMIT_XML_GROUPS
 
-try:
-    from paraview import servermanager
-except:
-    servermanager = None
+from paraview import servermanager
 
 
 # -----------------------------------------------------------------------------

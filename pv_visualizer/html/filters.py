@@ -1,5 +1,4 @@
-from trame import state
-from trame.html.widgets import ListBrowser
+from trame.widgets.trame import ListBrowser
 
 SOURCES = [
     "Cone",
@@ -26,7 +25,7 @@ class Algorithms(ListBrowser):
         self._click_fn = click
 
         if add_defaults:
-            state.algorithm_list = []
+            self.server.state.algorithm_list = []
             for name in SOURCES:
                 self.add_source(name)
             for name in FILTERS:
@@ -40,10 +39,10 @@ class Algorithms(ListBrowser):
 
     def add_entry(self, **kwargs):
         """Possible keys: text, prependIcon and appendIcon"""
-        state.algorithm_list += [kwargs]
+        self.server.state.algorithm_list += [kwargs]
 
     def _click(self, index):
-        entry = state.algorithm_list[index]
+        entry = self.server.state.algorithm_list[index]
         name = entry.get("text")
         if self._click_fn:
             self._click_fn(name)

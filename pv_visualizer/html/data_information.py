@@ -1,4 +1,4 @@
-from trame.html import vuetify, Div
+from trame.widgets import vuetify
 
 # -----------------------------------------------------------------------------
 # Utils

@@ -10,13 +10,8 @@ serve = {"__pv_visualizer": serve_path}
 scripts = ["__pv_visualizer/vue-pv_visualizer.umd.min.js"]
 
 # List of CSS files to load (usually from the serve path above)
-# Uncomment to add styles
 # styles = ["__pv_visualizer/vue-pv_visualizer.css"]
 
-# List of Vue plugins to install/load
-vue_use = ["pv_visualizer"]
-
-# Uncomment to add vuetify config
 vuetify = {
     "icons": {
         "values": {
@@ -32,10 +27,5 @@ vuetify = {
     }
 }
 
-# Uncomment to add entries to the shared state
-# state = {}
-
-# Optional if you want to execute custom initialization at module load
-def setup(app, **kwargs):
-    """Method called at initialization with possibly some custom keyword arguments"""
-    pass
+# List of Vue plugins to install/load
+vue_use = ["pv_visualizer", ("trame_vuetify", vuetify)]

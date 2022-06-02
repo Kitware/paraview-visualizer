@@ -1,7 +1,4 @@
-try:
-    from paraview import servermanager
-except:
-    pass
+from paraview import servermanager
 
 
 def unwrap(obj):

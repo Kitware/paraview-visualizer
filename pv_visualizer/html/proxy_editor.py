@@ -1,5 +1,4 @@
-from trame import state, controller as ctrl
-from trame.html import vuetify, simput, Div
+from trame.widgets import vuetify, simput, html
 
 from pv_visualizer.app.engine.proxymanager import ParaviewProxyManager
 
@@ -64,11 +63,8 @@ BTN_ADVANCED_STYLE = {
     "color": ("ui_advanced ? 'primary' : 'grey lighten-1'",),
 }
 
-# Default advance mode off
-state.ui_advanced = False
 
-
-class ProxyEditor(Div):
+class ProxyEditor(html.Div):
     def __init__(self, proxies=DEFAULT_NAMES, **kwargs):
         super().__init__(
             style="min-height: 0;", classes="d-flex flex-column pa-0 ma-0", **kwargs
@@ -76,7 +72,10 @@ class ProxyEditor(Div):
         self.var_names = []
 
         # Init state
-        state.active_proxy_id = 0
+        self.server.state.ui_advanced = False
+        self.server.state.active_proxy_id = 0
+
+        ctrl = self.server.controller
 
         with self:
             self.toolbar = vuetify.VToolbar(
@@ -113,7 +112,10 @@ class ProxyEditor(Div):
                     vuetify.VIcon("mdi-check-bold")
 
             # DEBUG - WIP
-            with Div(style="overflow: auto;", classes="py-2") as d:
+            with html.Div(style="overflow: auto;", classes="py-2") as d:
+                d.add_child(
+                    "source_id {{ source_id }} - active_proxy_index {{ active_proxy_index }}"
+                )
                 simput.SimputItem(
                     v_if=("active_proxy_index === 0",),
                     itemId=("source_id", 0),
@@ -128,7 +130,11 @@ class ProxyEditor(Div):
                 )
 
         # Attach state listener
-        state.change("active_proxy_index", *self.var_names)(self.update_proxy_edit)
+        self.server.state.change("active_proxy_index", *self.var_names)(
+            self.update_proxy_edit
+        )
 
     def update_proxy_edit(self, active_proxy_index, **kwargs):
-        state.active_proxy_id = state[self.var_names[active_proxy_index]]
+        self.server.state.active_proxy_id = self.server.state[
+            self.var_names[active_proxy_index]
+        ]

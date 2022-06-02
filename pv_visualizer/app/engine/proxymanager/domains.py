@@ -1,4 +1,4 @@
-from simput.core import ProxyDomain, PropertyDomain
+from trame_simput.core.domains import PropertyDomain, register_property_domain
 from . import paraview, decorators
 from .const import PANEL_WIDGETS, WIDGETS, DOMAIN_TYPES, DOMAIN_TYPE_DEFAULT
 
@@ -8,8 +8,8 @@ from .const import PANEL_WIDGETS, WIDGETS, DOMAIN_TYPES, DOMAIN_TYPE_DEFAULT
 
 
 class ParaViewDomain(PropertyDomain):
-    def __init__(self, _proxy, _property, _domain_manager=None, **kwargs):
-        super().__init__(_proxy, _property, _domain_manager, **kwargs)
+    def __init__(self, _proxy, _property, **kwargs):
+        super().__init__(_proxy, _property, **kwargs)
         self._pv_proxy = paraview.unwrap(_proxy.object)
         self._pv_property = paraview.unwrap(self._pv_proxy.GetProperty(_property))
         self._pv_class = kwargs.get("pv_class")
@@ -62,8 +62,8 @@ class ParaViewDomain(PropertyDomain):
 
 
 class ParaViewDecoratorDomain(PropertyDomain):
-    def __init__(self, _proxy, _property, _domain_manager=None, **kwargs):
-        super().__init__(_proxy, _property, _domain_manager, **kwargs)
+    def __init__(self, _proxy, _property, **kwargs):
+        super().__init__(_proxy, _property, **kwargs)
         self._decorator = decorators.get_decorator(
             paraview.unwrap(_proxy.object),
             kwargs.get("properties"),
@@ -99,10 +99,8 @@ class ParaViewDecoratorDomain(PropertyDomain):
 
 
 def register_domains():
-    ProxyDomain.register_property_domain("ParaViewDomain", ParaViewDomain)
-    ProxyDomain.register_property_domain(
-        "ParaViewDecoratorDomain", ParaViewDecoratorDomain
-    )
+    register_property_domain("ParaViewDomain", ParaViewDomain)
+    register_property_domain("ParaViewDecoratorDomain", ParaViewDecoratorDomain)
 
 
 # -----------------------------------------------------------------------------

@@ -1,10 +1,13 @@
-from trame import controller as ctrl
-from trame.layouts import SinglePageWithDrawer
-from trame.html import vuetify, paraview, simput
+from trame.app import dev
+from trame.ui.vuetify import SinglePageWithDrawerLayout
+from trame.widgets import vuetify, paraview, simput, html
+
+from trame_simput import get_simput_manager
+
+from paraview import simple
 
 # from pv_visualizer import html as my_widgets
-from pv_visualizer.app import assets
-from pv_visualizer.app.engine.proxymanager import ParaviewProxyManager
+from pv_visualizer.app.assets import asset_manager
 from pv_visualizer.app.ui import (
     pipeline,
     files,
@@ -14,12 +17,17 @@ from pv_visualizer.app.ui import (
     state_change,
 )
 
-try:
-    from paraview import simple
-except:
-    simple = None
 
-PXM = ParaviewProxyManager()
+def _reload():
+    dev.reload(
+        pipeline,
+        files,
+        algorithms,
+        settings,
+        view_toolbox,
+        state_change,
+    )
+
 
 # -----------------------------------------------------------------------------
 # Common style properties
@@ -46,106 +54,107 @@ LIFE_CYCLES = [
     "on_active_proxy_change",
 ]
 
-
-def bind_life_cycle_methods():
-    ctrl.on_data_change.add(ctrl.view_update)
-    ctrl.on_data_change.add(ctrl.pipeline_update)
-    ctrl.on_active_proxy_change.add(state_change.update_active_proxies)
-
-
-def on_reload(reload_modules):
-    for name in LIFE_CYCLES:
-        ctrl[name].clear()
-    reload_modules(*CONTROLS, view_toolbox, state_change)
-    bind_life_cycle_methods()
-
-
-bind_life_cycle_methods()
-
 # -----------------------------------------------------------------------------
 # Layout
 # -----------------------------------------------------------------------------
 
-layout = SinglePageWithDrawer(
-    "Visualizer",
-    favicon=assets.PV_LOGO_PATH,
-    show_drawer=True,
-    width=300,
-    show_drawer_name="drawer_visibility",
-    on_ready=ctrl.view_update,
-)
 
-_simput = simput.Simput(
-    PXM.ui_manager,
-    PXM.pdm,
-    prefix="pxm",
-    ref="simput",
-    query=("search", ""),
-)
+def initialize(server):
+    state, ctrl = server.state, server.controller
 
-ctrl.simput_push = _simput.push
-layout.root = _simput
+    # state
+    state.trame__title = "Visualizer"
+    state.trame__favicon = asset_manager.icon
 
-ctrl.pxm_apply = layout.root.apply
-ctrl.pxm_reset = layout.root.reset
+    # controller
+    ctrl.on_server_reload.add(_reload)
+    ctrl.on_data_change.add(ctrl.view_update)
+    ctrl.on_data_change.add(ctrl.pipeline_update)
 
-# -----------------------------------------------------------------------------
-# Toolbar
-# -----------------------------------------------------------------------------
-layout.logo.children = [f'<img src="{assets.PV_LOGO_URL}" height="40" />']
-layout.logo.click = None
-layout.title.set_text("Visualizer")
-with layout.toolbar as tb:
-    tb.dense = True
-    tb.clipped_right = True
-    vuetify.VSpacer()
-    vuetify.VTextField(
-        v_show=("!!active_controls",),
-        v_model=("search", ""),
-        clearable=True,
-        outlined=True,
-        filled=True,
-        rounded=True,
-        prepend_inner_icon="mdi-magnify",
-        style="max-width: 30vw;",
-        **COMPACT,
+    # Init other components
+    state_change.initialize(server)
+    for m in CONTROLS:
+        m.initialize(server)
+
+    # simput
+    simput_manager = get_simput_manager("pxm")
+    simput_widget = simput.Simput(
+        simput_manager,
+        prefix="pxm",
+        trame_server=server,
+        ref="simput",
+        query=("search", ""),
     )
-    vuetify.VSpacer()
-    with vuetify.VBtnToggle(
-        v_model=("active_controls", "files"), **COMPACT, outlined=True, rounded=True
-    ):
-        for item in CONTROLS:
-            with vuetify.VBtn(value=item.NAME, **COMPACT):
-                vuetify.VIcon(item.ICON, **item.ICON_STYLE)
+    ctrl.pxm_apply = simput_widget.apply
+    ctrl.pxm_reset = simput_widget.reset
 
-# -----------------------------------------------------------------------------=
-# Drawer
-# -----------------------------------------------------------------------------
-with layout.drawer as dr:
-    dr.right = True
-    # dr.expand_on_hover = True
-    for item in CONTROLS:
-        item.create_panel(dr)
+    with SinglePageWithDrawerLayout(server, show_drawer=True, width=300) as layout:
+        layout.root = simput_widget
 
-# -----------------------------------------------------------------------------
-# Main content
-# -----------------------------------------------------------------------------
-with layout.content:
-    with vuetify.VContainer(fluid=True, classes="fill-height pa-0 ma-0"):
-        view_toolbox.create_view_toolbox()
-        html_view = paraview.VtkRemoteLocalView(
-            simple.GetRenderView() if simple else None,
-            interactive_ratio=("view_interactive_ratio", 1),
-            interactive_quality=("view_interactive_quality", 70),
-            mode="remote",
-            namespace="view",
-            style="width: 100%; height: 100%;",
-        )
-        ctrl.view_replace = html_view.replace_view
-        ctrl.view_update = html_view.update
-        ctrl.view_reset_camera = html_view.reset_camera
+        # -----------------------------------------------------------------------------
+        # Toolbar
+        # -----------------------------------------------------------------------------
+        layout.title.set_text("Visualizer")
 
-# -----------------------------------------------------------------------------
-# Footer
-# -----------------------------------------------------------------------------
-# layout.footer.hide()
+        with layout.icon as icon:
+            html.Img(src=asset_manager.icon, height=40)
+            icon.click = None
+
+        with layout.toolbar as tb:
+            tb.dense = True
+            tb.clipped_right = True
+            vuetify.VSpacer()
+            vuetify.VTextField(
+                v_show=("!!active_controls",),
+                v_model=("search", ""),
+                clearable=True,
+                outlined=True,
+                filled=True,
+                rounded=True,
+                prepend_inner_icon="mdi-magnify",
+                style="max-width: 30vw;",
+                **COMPACT,
+            )
+            vuetify.VSpacer()
+            with vuetify.VBtnToggle(
+                v_model=("active_controls", "files"),
+                **COMPACT,
+                outlined=True,
+                rounded=True,
+            ):
+                for item in CONTROLS:
+                    with vuetify.VBtn(value=item.NAME, **COMPACT):
+                        vuetify.VIcon(item.ICON, **item.ICON_STYLE)
+
+        # -----------------------------------------------------------------------------=
+        # Drawer
+        # -----------------------------------------------------------------------------
+        with layout.drawer as dr:
+            dr.right = True
+            # dr.expand_on_hover = True
+            for item in CONTROLS:
+                item.create_panel(server)
+
+        # -----------------------------------------------------------------------------
+        # Main content
+        # -----------------------------------------------------------------------------
+        with layout.content:
+            with vuetify.VContainer(fluid=True, classes="fill-height pa-0 ma-0"):
+                view_toolbox.create_view_toolbox(server)
+                html_view = paraview.VtkRemoteLocalView(
+                    simple.GetRenderView() if simple else None,
+                    interactive_ratio=("view_interactive_ratio", 1),
+                    interactive_quality=("view_interactive_quality", 70),
+                    mode="remote",
+                    namespace="view",
+                    style="width: 100%; height: 100%;",
+                )
+                ctrl.view_replace = html_view.replace_view
+                ctrl.view_update = html_view.update
+                ctrl.view_reset_camera = html_view.reset_camera
+                ctrl.on_server_ready.add(ctrl.view_update)
+
+        # -----------------------------------------------------------------------------
+        # Footer
+        # -----------------------------------------------------------------------------
+        # layout.footer.hide()

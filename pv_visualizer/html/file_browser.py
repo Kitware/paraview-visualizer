@@ -1,13 +1,9 @@
 import os
 import re
 
-from trame import state
-from trame.html.widgets import ListBrowser
+from trame.widgets.trame import ListBrowser
 
-try:
-    from paraview import simple
-except:
-    simple = None
+from paraview import simple
 
 
 class ParaViewPathResolver:
@@ -165,7 +161,6 @@ class ParaViewPathResolver:
 class AbstractFileBrowser(ListBrowser):
     def __init__(self, resolver, on_load_file=None, namespace="file_browser", **kwargs):
         self._resolver = resolver
-        self._state = state
         self._on_load_file = on_load_file
         self._key_open_file = f"{namespace}_open"
         self._key_path = f"{namespace}_path"
@@ -185,7 +180,7 @@ class AbstractFileBrowser(ListBrowser):
         # "list",
 
     def _update_listing(self):
-        path_tokens = self._state[self._key_path]
+        path_tokens = self.server.state[self._key_path]
         base_path = "/".join(path_tokens) if len(path_tokens) > 1 else "."
         directory_meta = self._resolver.list_directory(base_path)
         listing = []
@@ -227,22 +222,22 @@ class AbstractFileBrowser(ListBrowser):
                 }
             )
 
-        self._state[self._key_listing] = listing
+        self.server.state[self._key_listing] = listing
 
     def _update_path(self, type, value):
         if type == "Directory":
-            current_path = self._state[self._key_path]
+            current_path = self.server.state[self._key_path]
             new_path = []
             new_path.extend(current_path)
             new_path.append(value)
-            self._state[self._key_path] = new_path
+            self.server.state[self._key_path] = new_path
             self._update_listing()
         elif type == "path":
             new_path = value.split("/")
-            self._state[self._key_path] = new_path
+            self.server.state[self._key_path] = new_path
             self._update_listing()
         elif type == "Group":
-            path_with_root = list(self._state[self._key_path])
+            path_with_root = list(self.server.state[self._key_path])
             path_with_root.pop(0)  # remove Home/
             current_path = "/".join(path_with_root)
             files_to_load = []
@@ -251,7 +246,7 @@ class AbstractFileBrowser(ListBrowser):
             if self._on_load_file:
                 self._on_load_file(files_to_load)
         elif type == "File":
-            path_with_root = list(self._state[self._key_path])
+            path_with_root = list(self.server.state[self._key_path])
             path_with_root.pop(0)  # remove Home/
             if len(path_with_root):
                 current_path = "/".join(path_with_root)
@@ -282,5 +277,5 @@ class ParaViewFileBrowser(AbstractFileBrowser):
         self._on_load_file = on_load_file
         super().__init__(self._pv_resolver, self._on_load_file, namespace, **kwargs)
 
-        self._state[self._key_path] = [root_name]
+        self.server.state[self._key_path] = [root_name]
         self._update_listing()

@@ -119,7 +119,7 @@ DOMAIN_TYPES = {
     "vtkSMProxyListDomain": domain_helpers.domain_list_proxies_simput_ids,
     "vtkSMArrayListDomain": domain_helpers.domain_list_arrays,
     "vtkSMRepresentedArrayListDomain": domain_helpers.domain_list_arrays,
-    "vtkSMArrayRangeDomain":  domain_helpers.domain_range,
+    "vtkSMArrayRangeDomain": domain_helpers.domain_range,
     # ------------------------------------------------
     "vtkSMDataTypeDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMInputArrayDomain": DOMAIN_TYPE_DEFAULT,

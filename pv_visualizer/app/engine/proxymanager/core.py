@@ -1,27 +1,17 @@
 import os
 from pathlib import Path
 
-from trame import Singleton, state, controller as ctrl
-from trame.internal.app import get_app_instance
-
-from simput.core import (
-    ProxyManager,
-    UIManager,
-    ProxyDomainManager,
-    Proxy,
-    ProxyObjectAdapter,
-)
-from simput.ui.web import VuetifyResolver
+from trame.app.singleton import Singleton
+from trame_simput import get_simput_manager
+from trame_simput.core.mapping import ProxyObjectAdapter
+from trame_simput.core.proxy import Proxy
 
 from pv_visualizer.app.engine.proxymanager.const import SETTINGS_PROXIES
 
 from . import paraview, domains, definitions, data_informations
 from .decorators import AdvancedDecorator
 
-try:
-    from paraview import simple
-except:
-    pass
+from paraview import simple
 
 PENDING = True
 
@@ -168,7 +158,6 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
         print("simple.Delete() => done", pv_proxy.GetReferenceCount())
 
 
-PV_ADAPTER = ParaViewProxyObjectAdapter()
 # -----------------------------------------------------------------------------
 
 
@@ -196,26 +185,42 @@ class ParaviewProxyManager:
         domains.register_domains()
 
         # Load Simput models and layouts
-        self._pxm = ProxyManager(self._factory)
-        ui_resolver = VuetifyResolver()
-        self._ui_manager = UIManager(self._pxm, ui_resolver)
-        self._pdm = ProxyDomainManager()
-        self._pxm.add_life_cycle_listener(self._pdm)
+        self._simput = get_simput_manager(
+            "pxm",
+            object_factory=self._factory,
+            object_adapter=ParaViewProxyObjectAdapter(),
+        )
+        self._pxm = self._simput.proxymanager
         self._pxm.on(self.on_pxm_event)
-
-        # Controller binding
-        ctrl.on_data_change.add(self.on_active_change)
-        ctrl.on_delete = self.on_proxy_delete
-
-        # No active simput proxy just yet
-        state.source_id = 0
-        state.representation_id = 0
-        state.active_data_information = {}
 
         # Debug
         self._write_definitions_base = str(
             Path(Path(__file__).parent / "definitions").resolve().absolute()
         )
+
+    def set_server(self, server):
+        self._server = server
+        self._state = server.state
+        self._ctrl = server.controller
+
+        # Controller binding
+        self._ctrl.on_data_change.add(self.on_active_change)
+        self._ctrl.on_delete = self.on_proxy_delete
+        self._ctrl.on_active_proxy_change.add(self.on_active_change)
+        self._ctrl.pxm_refresh_active_proxies = self.refresh_active_proxies
+
+        # No active simput proxy just yet
+        self._state.source_id = 0
+        self._state.representation_id = 0
+        self._state.active_data_information = {}
+        self._state.change("ui_advanced")(self.update_advanced)
+
+        # Should init active proxies
+        self.update_active_proxies()
+
+    def update_advanced(self, ui_advanced, **kwargs):
+        AdvancedDecorator.advance_mode = ui_advanced
+        self.reload_domains()
 
     def update_active_proxies(self):
         setting_proxies = []
@@ -227,13 +232,13 @@ class ParaviewProxyManager:
                     "icon": item[2],
                 }
             )
-        state.setting_proxies = setting_proxies
+        self._state.setting_proxies = setting_proxies
 
         view = simple.GetActiveView()
         if view is None:
             view = simple.GetRenderView()
             simple.SetActiveView(view)
-        state.view_id = self.handle_proxy(view)
+        self._state.view_id = self.handle_proxy(view)
 
     @property
     def factory(self):
@@ -244,24 +249,18 @@ class ParaviewProxyManager:
         return self._pxm
 
     @property
-    def pdm(self):
-        return self._pdm
-
-    @property
     def ui_manager(self):
-        return self._ui_manager
+        return self._simput
 
     def on_pxm_event(self, topic, **kwrags):
         if topic == "commit":
-            ctrl.on_data_change()  # Trigger render
+            self._ctrl.on_data_change()  # Trigger render
 
     def reload_domains(self):
-        app = get_app_instance()
-        app.update(ref="simput", method="reload", args=["domain"])
+        self._server.js_call("simput", "reload", "domain")
 
     def reload_data(self):
-        app = get_app_instance()
-        app.update(ref="simput", method="reload", args=["data"])
+        self._server.js_call("simput", "reload", "data")
 
     def on_active_change(self, **kwargs):
         source = simple.GetActiveSource()
@@ -269,14 +268,18 @@ class ParaviewProxyManager:
         representation = None
         if source is not None:
             representation = simple.GetRepresentation(proxy=source, view=view)
-            state.active_proxy_source_id = source.GetGlobalIDAsString()
-            state.active_proxy_representation_id = representation.GetGlobalIDAsString()
+            self._state.active_proxy_source_id = source.GetGlobalIDAsString()
+            self._state.active_proxy_representation_id = (
+                representation.GetGlobalIDAsString()
+            )
 
-        state.source_id = self.handle_proxy(source)
-        state.representation_id = self.handle_proxy(representation)
-        state.view_id = self.handle_proxy(view)
-        ctrl.pv_reaction_representation_scalarbar_update()
-        data_informations.update_data_information(source)
+        self._state.source_id = self.handle_proxy(source)
+        self._state.representation_id = self.handle_proxy(representation)
+        self._state.view_id = self.handle_proxy(view)
+        self._ctrl.pv_reaction_representation_scalarbar_update()
+        self._state.active_data_information = data_informations.get_data_information(
+            source
+        )
 
     def on_proxy_delete(self, pv_id):
         pv_view = simple.GetActiveView()
@@ -284,8 +287,8 @@ class ParaviewProxyManager:
 
         # clear active proxy if deleted one
         if pv_active and pv_active.GetGlobalIDAsString() == pv_id:
-            state.source_id = "0"
-            state.representation_id = "0"
+            self._state.source_id = "0"
+            self._state.representation_id = "0"
             simple.SetActiveSource(None)
 
         s_source_id = self._id_pv_to_simput[pv_id]
@@ -306,8 +309,8 @@ class ParaviewProxyManager:
 
         # Trigger some life cycle events
         # ctrl.pipeline_update()
-        ctrl.on_active_proxy_change()
-        ctrl.on_data_change()
+        self._ctrl.on_active_proxy_change()
+        self._ctrl.on_data_change()
 
     def handle_proxy(self, proxy):
         if proxy is None:
@@ -369,8 +372,8 @@ class ParaviewProxyManager:
         model_yaml = definitions.proxy_model(proxy)
         ui_xml = definitions.proxy_ui(proxy)
         self._pxm.load_model(yaml_content=model_yaml)
-        self._ui_manager.load_language(yaml_content=model_yaml)
-        self._ui_manager.load_ui(xml_content=ui_xml)
+        self.ui_manager.load_language(yaml_content=model_yaml)
+        self.ui_manager.load_ui(xml_content=ui_xml)
 
         # Write definitions
         if self._write_definitions_base:
@@ -394,7 +397,7 @@ class ParaviewProxyManager:
         # Take care of ourself
         proxy_type = definitions.proxy_type(proxy)
         self._factory.next(proxy)
-        simput_entry = self._pxm.create(proxy_type, _object_adapter=PV_ADAPTER)
+        simput_entry = self._pxm.create(proxy_type)
         self._id_pv_to_simput[proxy_id] = simput_entry.id
 
         # Read property from proxy and update simput entry
@@ -403,32 +406,13 @@ class ParaviewProxyManager:
         return simput_entry.id
 
     def refresh_active_proxies(self):
-        for _id in [state.source_id, state.representation_id]:
+        for _id in [self._state.source_id, self._state.representation_id]:
             simput_rep = self._pxm.get(_id)
             if simput_rep:
                 simput_rep.fetch()
-            ctrl.simput_push(proxy=_id)
+            self._ctrl.simput_push(proxy=_id)
 
 
 # -----------------------------------------------------------------------------
 
 PV_PXM = ParaviewProxyManager()
-PV_PXM.update_active_proxies()
-
-# -----------------------------------------------------------------------------
-# Life cycle listener
-# -----------------------------------------------------------------------------
-
-ctrl.on_active_proxy_change.add(ParaviewProxyManager().on_active_change)
-
-# ---------------------------------------------------------
-# Listeners
-# ---------------------------------------------------------
-
-ctrl.pxm_refresh_active_proxies = PV_PXM.refresh_active_proxies
-
-
-@state.change("ui_advanced")
-def update_advanced(ui_advanced, **kwargs):
-    AdvancedDecorator.advance_mode = ui_advanced
-    PV_PXM.reload_domains()

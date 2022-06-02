@@ -1,21 +1,35 @@
-from trame import setup_dev
-from . import cli  # noqa
-from . import controller, ui
+from pathlib import Path
+from trame.app import get_server, dev
+from . import engine, ui
 
 
-def start_server():
-    setup_dev(ui, controller)
-    ui.layout.start()
+def _reload():
+    server = get_server()
+    dev.reload(ui)
+    ui.initialize(server)
 
 
-def start_desktop():
-    ui.layout.start_desktop_window()
+def main(server=None, **kwargs):
+    if server is None:
+        server = get_server()
 
+    # Make UI auto reload
+    server.controller.on_server_reload.add(_reload)
 
-def main():
-    controller.on_start()
-    start_server()
+    # Init application
+    engine.initialize(server)
+    ui.initialize(server)
+
+    # Start server
+    server.start(**kwargs)
 
 
 if __name__ == "__main__":
-    main()
+    server = get_server()
+    server.cli.add_argument(
+        "--data", help="Path to browse", dest="data", default=str(Path.home())
+    )
+    server.cli.add_argument(
+        "--plugins", help="List of distributed plugins to load", dest="plugins"
+    )
+    main(server)
