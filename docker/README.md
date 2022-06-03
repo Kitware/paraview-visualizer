@@ -1,7 +1,6 @@
 ## Building paraview-visualizer docker image (Linux only)
 
 ```bash
-export TRAME_PARAVIEW=/path/to/your/paraview/home
 ./scripts/build_image.sh
 ```
 

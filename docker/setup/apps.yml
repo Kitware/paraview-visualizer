@@ -1,10 +1,34 @@
-PyWebVue: # Default app under /index.html
-  app: pv-visualizer
-  args:
+trame: # Default app under /index.html
+  www_modules:
+    - pv_visualizer.html.module
+  cmd:
+    - /opt/paraview/bin/pvpython
+    - -m
+    - paraview.apps.trame
+    - --trame-app
+    - pv_visualizer
     - --data
     - /data
+    - --host
+    - ${host}
+    - --port
+    - ${port}
+    - --authKey
+    - ${secret}
+    - --server
 Visualizer: # /Visualizer.html or /?name=Visualizer&data=...
-  app: pv-visualizer
-  args:
+  cmd:
+    - /opt/paraview/bin/pvpython
+    - -m
+    - paraview.apps.trame
+    - --trame-app
+    - pv_visualizer
     - --data
     - ${data} # <-- come from url(data=...)
+    - --host
+    - ${host}
+    - --port
+    - ${port}
+    - --authKey
+    - ${secret}
+    - --server

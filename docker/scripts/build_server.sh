@@ -12,8 +12,6 @@ popd
 
 docker run --rm --gpus all \
     -e TRAME_BUILD_ONLY=1 \
-    -e TRAME_PARAVIEW=/opt/paraview   \
-    -v "$TRAME_PARAVIEW:/opt/paraview" \
     -v "$DEPLOY_DIR:/deploy" \
     -v "$ROOT_DIR/paraview-visualizer:/local-app" \
     kitware/trame:1.2-glvnd-runtime-ubuntu20.04-py39
