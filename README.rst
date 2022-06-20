@@ -2,6 +2,10 @@
 Visualizer
 ==========
 
+.. image:: https://github.com/Kitware/paraview-visualizer/actions/workflows/test_and_release.yml/badge.svg
+    :target: https://github.com/Kitware/paraview-visualizer/actions/workflows/test_and_release.yml
+    :alt: Test and Release
+
 Web frontend to ParaView
 
 |image_1| |image_2| |image_3|
