@@ -4,7 +4,7 @@ from trame.app import get_server, dev
 SERVER = None
 
 
-def main(server=None, **kwargs):
+def main(server=None, data=None, plugins=None, **kwargs):
     from . import engine, ui
 
     global SERVER
@@ -12,12 +12,15 @@ def main(server=None, **kwargs):
         server = get_server()
 
     # Add CLI
-    server.cli.add_argument(
-        "--data", help="Path to browse", dest="data", default=str(Path.home())
-    )
-    server.cli.add_argument(
-        "--plugins", help="List of distributed plugins to load", dest="plugins"
-    )
+    if data is None:
+        server.cli.add_argument(
+            "--data", help="Path to browse", dest="data", default=str(Path.home())
+        )
+
+    if plugins is None:
+        server.cli.add_argument(
+            "--plugins", help="List of distributed plugins to load", dest="plugins"
+        )
 
     # Make UI auto reload
     def _reload():
