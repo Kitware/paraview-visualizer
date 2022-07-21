@@ -1,6 +1,10 @@
+import logging
 from trame_simput.core.domains import PropertyDomain, register_property_domain
 from . import paraview, decorators
 from .const import PANEL_WIDGETS, WIDGETS, DOMAIN_TYPES, DOMAIN_TYPE_DEFAULT
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # -----------------------------------------------------------------------------
 # Generic ParaView domain adapter
@@ -18,8 +22,8 @@ class ParaViewDomain(PropertyDomain):
         self._pv_domain = None
 
         if self._pv_property is None:
-            # print(f"!> No property {_property} on proxy {self._pv_proxy.GetXMLName()}")
-            # print("~" * 80)
+            # logger.info(f"!> No property {_property} on proxy {self._pv_proxy.GetXMLName()}")
+            # logger.info("~" * 80)
             return
 
         # Find PV domain instance
@@ -48,7 +52,7 @@ class ParaViewDomain(PropertyDomain):
             return []
 
         values = self._available(self._pv_domain)
-        # print(f"{self._pv_class}::{self._pv_name}", values)
+        # logger.info(f"{self._pv_class}::{self._pv_name}", values)
         return values
 
     def valid(self, required_level=2):
@@ -76,9 +80,9 @@ class ParaViewDecoratorDomain(PropertyDomain):
     def available(self):
         if self._decorator:
             # DEBUG decorator state ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            # print(f"{self._property_name}")
-            # print(f"  > show({self._decorator.can_show()})")
-            # print(f"  > enable({self._decorator.enable_widget()})")
+            # logger.info(f"{self._property_name}")
+            # logger.info(f"  > show({self._decorator.can_show()})")
+            # logger.info(f"  > enable({self._decorator.enable_widget()})")
             # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             return {
                 "show": self._decorator.can_show(),
@@ -131,11 +135,11 @@ def get_domain_widget(domain):
         custom_widget = PANEL_WIDGETS.get(panel_widget)
         if custom_widget:
             widget = custom_widget
-            # print(
+            # logger.info(
             #     f"Use custom widget {property.GetXMLName()} {panel_widget} => {widget}"
             # )
         elif custom_widget is None:
-            print(f"Missing custom widget key: {panel_widget}")
+            logger.info(f"Missing custom widget key: {panel_widget}")
 
     # Try to adjust layout base on property size
     if get_property_size(property) == 6:

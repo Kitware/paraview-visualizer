@@ -1,9 +1,13 @@
 import os
 import re
+import logging
 
 from trame.widgets.trame import ListBrowser
 
 from paraview import simple
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class ParaViewPathResolver:
@@ -62,12 +66,12 @@ class ParaViewPathResolver:
         normBase = os.path.normpath(baseDirectory)
 
         if not currentPath.startswith(normBase):
-            print("### CAUTION ==========================================")
-            print(" Attempt to get to another root path ###")
-            print("  => Requested:", relativeDir)
-            print("  => BaseDir:", normBase)
-            print("  => Computed path:", currentPath)
-            print("### CAUTION ==========================================")
+            logger.critical("### CAUTION ==========================================")
+            logger.critical(" Attempt to get to another root path ###")
+            logger.critical("  => Requested:", relativeDir)
+            logger.critical("  => BaseDir:", normBase)
+            logger.critical("  => Computed path:", currentPath)
+            logger.critical("### CAUTION ==========================================")
             currentPath = normBase
 
         self.directory_proxy.List(currentPath)
@@ -257,7 +261,7 @@ class AbstractFileBrowser(ListBrowser):
             if self._on_load_file:
                 self._on_load_file(file_to_load)
         else:
-            print(f"need to handle {type}: {value}")
+            logger.info(f"need to handle {type}: {value}")
 
 
 class ParaViewFileBrowser(AbstractFileBrowser):

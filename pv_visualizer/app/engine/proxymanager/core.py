@@ -1,4 +1,5 @@
 import os
+import logging
 from pathlib import Path
 
 from trame.app.singleton import Singleton
@@ -14,6 +15,9 @@ from .decorators import AdvancedDecorator
 from paraview import simple
 
 PENDING = True
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # -----------------------------------------------------------------------------
 # PV <=> Simput proxy state exchange
@@ -80,7 +84,7 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
             pv_property = paraview.unwrap(pv_proxy.GetProperty(name))
 
             if pv_property is None:
-                # print(f"No property {name} for proxy {pv_proxy.GetXMLName()}")
+                # logger.info(f"No property {name} for proxy {pv_proxy.GetXMLName()}")
                 continue
 
             # Custom handling for proxy
@@ -108,7 +112,7 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
                 else:
                     value = pv_property.GetElement(0)
 
-                # print(f"{property_class}({size})::{name} = {value} ({type(value)})")
+                # logger.info(f"{property_class}({size})::{name} = {value} ({type(value)})")
                 simput_proxy.set_property(name, value)
 
         simput_proxy.commit()
@@ -148,14 +152,14 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
     @staticmethod
     def before_delete(simput_proxy):
         pv_proxy = simput_proxy.object
-        print(
+        logger.info(
             "Deleting PV proxy",
             simput_proxy.id,
             pv_proxy.GetGlobalIDAsString(),
             pv_proxy.GetReferenceCount(),
         )
         simple.Delete(pv_proxy)
-        print("simple.Delete() => done", pv_proxy.GetReferenceCount())
+        logger.info("simple.Delete() => done", pv_proxy.GetReferenceCount())
 
 
 # -----------------------------------------------------------------------------
@@ -345,7 +349,7 @@ class ParaviewProxyManager:
                     for i in range(size):
                         s_proxy = prop.GetProxy(i)
                         if s_proxy is not None:
-                            # print("add sub proxy", s_proxy.GetClassName())
+                            # logger.info("add sub proxy", s_proxy.GetClassName())
                             list_to_fill.append(s_proxy)
 
         return list_to_fill

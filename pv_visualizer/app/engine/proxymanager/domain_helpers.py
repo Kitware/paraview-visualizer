@@ -1,5 +1,9 @@
 import sys
 from . import paraview
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # -----------------------------------------------------------------------------
 # General util functions
@@ -153,6 +157,6 @@ def domain_unknown(domain):
 
     if class_name not in UNKNOWN_DOMAINS:
         UNKNOWN_DOMAINS.add(class_name)
-        print("domain_unknown::class", class_name)
+        logger.info("domain_unknown::class", class_name)
 
     return {}

@@ -7,6 +7,10 @@ r"""
 ./Qt/ApplicationComponents/pqSpreadSheetViewDecorator.cxx
 ./Qt/ApplicationComponents/pqAnimationShortcutDecorator.cxx
 """
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class AdvancedDecorator:
@@ -406,4 +410,4 @@ def get_decorator(proxy, config):
     if _type in globals():
         return globals()[_type](proxy, config)
 
-    print(f"~~~ no decorator for {_type} ~~~")
+    logger.info(f"~~~ no decorator for {_type} ~~~")

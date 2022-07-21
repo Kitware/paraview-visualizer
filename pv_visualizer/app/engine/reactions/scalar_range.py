@@ -1,6 +1,9 @@
+import logging
 from paraview import simple
-
 from paraview.modules.vtkRemotingViews import vtkSMPVRepresentationProxy
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def unwrap(p):
@@ -13,14 +16,14 @@ def initialize(server, mapper):
     ctrl = server.controller
 
     def resetScalarRangeToData():
-        print("resetScalarRangeToData")
+        logger.info("resetScalarRangeToData")
         proxy = simple.GetRepresentation()
         if proxy and vtkSMPVRepresentationProxy.GetUsingScalarColoring(unwrap(proxy)):
             vtkSMPVRepresentationProxy.RescaleTransferFunctionToDataRange(unwrap(proxy))
             ctrl.view_update()
 
     def resetScalarRangeToCustom(data_range, opacity_range=None):
-        print("resetScalarRangeToCustom")
+        logger.info("resetScalarRangeToCustom")
         separateOpacity = False
         proxy = simple.GetRepresentation()
         if proxy:
@@ -38,7 +41,7 @@ def initialize(server, mapper):
                 ctrl.view_update()
 
     def resetScalarRangeToDataOverTime():
-        print("resetScalarRangeToDataOverTime")
+        logger.info("resetScalarRangeToDataOverTime")
         proxy = simple.GetRepresentation()
         if proxy and vtkSMPVRepresentationProxy.GetUsingScalarColoring(unwrap(proxy)):
             vtkSMPVRepresentationProxy.RescaleTransferFunctionToDataRangeOverTime(
@@ -47,7 +50,7 @@ def initialize(server, mapper):
             ctrl.view_update()
 
     def resetScalarRangeToVisible():
-        print("resetScalarRangeToVisible")
+        logger.info("resetScalarRangeToVisible")
         view = simple.GetActiveView()
         rep = simple.GetRepresentation()
         if view and rep:

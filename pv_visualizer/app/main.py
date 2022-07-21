@@ -21,6 +21,8 @@ def main(server=None, data=None, plugins=None, **kwargs):
         server.cli.add_argument(
             "--plugins", help="List of distributed plugins to load", dest="plugins"
         )
+        args, _ = server.cli.parse_known_args()
+        plugins = args.plugins.split(",") if args.plugins else []
 
     # Make UI auto reload
     def _reload():
@@ -32,7 +34,7 @@ def main(server=None, data=None, plugins=None, **kwargs):
     # Init application
     SERVER = server
 
-    engine.initialize(server)
+    engine.initialize(server, plugins)
     ui.initialize(server)
 
     # Start server

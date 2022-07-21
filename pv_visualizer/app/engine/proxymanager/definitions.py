@@ -1,3 +1,4 @@
+import logging
 import yaml
 import json
 import base64
@@ -8,6 +9,8 @@ from .const import PROPERTY_TYPES, DECORATOR_ATTRS, AUTO_COMMIT_XML_GROUPS
 
 from paraview import servermanager
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # -----------------------------------------------------------------------------
 # Spec key
@@ -184,7 +187,7 @@ def property_yaml(property):
     # currently simput don't properly manage list of proxy as property...
     # i.e. views.RenderView.Representations
     if property_definition["type"] == "proxy" and size != 1:
-        print(
+        logger.info(
             "Skip multi-proxy property",
             property.GetParent().GetXMLName(),
             property.GetXMLName(),
@@ -246,12 +249,12 @@ def should_skip(property):
     #     return True
 
     if property.GetIsInternal():
-        # print("skip internal")
+        # logger.info("skip internal")
         return True
 
     visibility = property.GetPanelVisibility()
     if visibility in ["never"]:
-        # print("skip visibility", visibility)
+        # logger.info("skip visibility", visibility)
         return True
 
     if property.IsA("vtkSMProxyProperty"):
@@ -357,7 +360,7 @@ def proxy_ui(proxy):
         # Skip custom widget until they get implemented
         if domains.PANEL_WIDGETS.get(group.GetPanelWidget()) == "skip":
             group_key = "skip"
-            # print(f"> Skip {group.GetPanelWidget()}")
+            # logger.info(f"> Skip {group.GetPanelWidget()}")
 
         # Create group
         xml_group = xml_groups.get(group_key)
