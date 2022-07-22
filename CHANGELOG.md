@@ -2,6 +2,13 @@
 
 <!--next-version-placeholder-->
 
+## v0.0.7 (2022-07-22)
+### Fix
+* **jupyter:** Trigger release for jupyter usage ([`1d3a8ad`](https://github.com/Kitware/paraview-visualizer/commit/1d3a8ad37a9139540d41195c840ed79f795c549c))
+
+### Documentation
+* **jupyter:** Update pict ([`bad4324`](https://github.com/Kitware/paraview-visualizer/commit/bad43241ef9a76f5f0db38b3b99ecec8cc33861b))
+
 ## v0.0.6 (2022-07-21)
 ### Fix
 * **jupyter:** More support ([`c8450dc`](https://github.com/Kitware/paraview-visualizer/commit/c8450dc2b195ea70a087af5c2cdb9a8ee8cfb56a))
