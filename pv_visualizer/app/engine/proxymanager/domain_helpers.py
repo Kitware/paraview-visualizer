@@ -157,6 +157,6 @@ def domain_unknown(domain):
 
     if class_name not in UNKNOWN_DOMAINS:
         UNKNOWN_DOMAINS.add(class_name)
-        logger.info("domain_unknown::class", class_name)
+        logger.info("domain_unknown::class(%s)", class_name)
 
     return {}

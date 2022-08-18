@@ -188,7 +188,7 @@ def property_yaml(property):
     # i.e. views.RenderView.Representations
     if property_definition["type"] == "proxy" and size != 1:
         logger.info(
-            "Skip multi-proxy property",
+            "Skip multi-proxy property Proxy(%s)::Property(%s)",
             property.GetParent().GetXMLName(),
             property.GetXMLName(),
         )
