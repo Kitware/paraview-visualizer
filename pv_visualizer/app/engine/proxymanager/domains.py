@@ -1,7 +1,13 @@
 import logging
 from trame_simput.core.domains import PropertyDomain, register_property_domain
 from . import paraview, decorators
-from .const import PANEL_WIDGETS, WIDGETS, DOMAIN_TYPES, DOMAIN_TYPE_DEFAULT
+from .const import (
+    PANEL_WIDGETS,
+    WIDGETS,
+    DOMAIN_TYPES,
+    DOMAIN_TYPE_DEFAULT,
+    DOMAINS_TO_SKIP,
+)
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -150,5 +156,8 @@ def get_domain_widget(domain):
 
     if domain.GetClassName() in ["vtkSMDoubleRangeDomain", "vtkSMIntRangeDomain"]:
         keep = domain.GetMinimumExists(0) and domain.GetMaximumExists(0)
+
+    if keep and name in DOMAINS_TO_SKIP:
+        keep = False
 
     return keep, name, widget, ui_attributes

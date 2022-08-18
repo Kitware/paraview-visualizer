@@ -115,12 +115,14 @@ DOMAIN_TYPES = {
     "vtkSMIntRangeDomain": domain_helpers.domain_range,
     "vtkSMEnumerationDomain": domain_helpers.domain_list_entries,
     "vtkSMRepresentationTypeDomain": domain_helpers.domain_list_strings,
+    "vtkSMRendererDomain": domain_helpers.domain_list_strings,
     "vtkSMProxyListDomain": domain_helpers.domain_list_proxies_simput_ids,
     "vtkSMArrayListDomain": domain_helpers.domain_list_arrays,
     "vtkSMRepresentedArrayListDomain": domain_helpers.domain_list_arrays,
     "vtkSMArrayRangeDomain": domain_helpers.domain_range,
+    "vtkSMStringListDomain": domain_helpers.domain_list_strings,
     # ------------------------------------------------
-    "vtkSMDataTypeDomain": DOMAIN_TYPE_DEFAULT,
+    # "vtkSMDataTypeDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMInputArrayDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMProxyGroupDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMDataAssemblyDomain": DOMAIN_TYPE_DEFAULT,
@@ -129,4 +131,8 @@ DOMAIN_TYPES = {
     "vtkSMRangedTransferFunctionDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMMaterialDomain": DOMAIN_TYPE_DEFAULT,
     "vtkSMArraySelectionDomain": DOMAIN_TYPE_DEFAULT,
+}
+
+DOMAINS_TO_SKIP = {
+    "vtkSMDataTypeDomain": 1,
 }
