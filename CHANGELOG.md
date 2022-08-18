@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.0.9 (2022-08-18)
+### Fix
+* **drawer:** Fix visibility drawer toggle ([`3d6a4f2`](https://github.com/Kitware/paraview-visualizer/commit/3d6a4f210a7723a7570f06eff746b1d1cbfdbbd0))
+
 ## v0.0.8 (2022-08-18)
 ### Fix
 * **simput/widget:** Use latest trame inject api correctly ([`f2439c4`](https://github.com/Kitware/paraview-visualizer/commit/f2439c45a127c4956f8022943599c7354d7d2ccb))
