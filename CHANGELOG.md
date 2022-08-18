@@ -2,6 +2,11 @@
 
 <!--next-version-placeholder-->
 
+## v0.0.8 (2022-08-18)
+### Fix
+* **simput/widget:** Use latest trame inject api correctly ([`f2439c4`](https://github.com/Kitware/paraview-visualizer/commit/f2439c45a127c4956f8022943599c7354d7d2ccb))
+* **logger:** Use valid syntax ([`5d68081`](https://github.com/Kitware/paraview-visualizer/commit/5d68081a7760d19c134254ba76ba915b344880d0))
+
 ## v0.0.7 (2022-07-22)
 ### Fix
 * **jupyter:** Trigger release for jupyter usage ([`1d3a8ad`](https://github.com/Kitware/paraview-visualizer/commit/1d3a8ad37a9139540d41195c840ed79f795c549c))
