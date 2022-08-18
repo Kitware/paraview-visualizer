@@ -66,7 +66,7 @@ export default {
     },
     shouldShowTextToQuery,
     scalarBarVisible() {
-      return this.get('active_representation_scalarbar_visibility');
+      return this.trame.state.get('active_representation_scalarbar_visibility');
     },
     arrayMap() {
       this.mtime; // force refresh
@@ -160,7 +160,7 @@ export default {
     },
   },
   inject: [
-    'get',
+    'trame',
     'data',
     'properties',
     'domains',
