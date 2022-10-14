@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0 (2022-10-14)
+### Feature
+* **main:** Return server.start ([`fd7503a`](https://github.com/Kitware/paraview-visualizer/commit/fd7503a67d937fff57b227a988da877057e297fa))
+
 ## v0.0.9 (2022-08-18)
 ### Fix
 * **drawer:** Fix visibility drawer toggle ([`3d6a4f2`](https://github.com/Kitware/paraview-visualizer/commit/3d6a4f210a7723a7570f06eff746b1d1cbfdbbd0))
