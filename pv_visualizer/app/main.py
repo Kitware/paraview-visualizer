@@ -38,7 +38,7 @@ def main(server=None, data=None, plugins=None, **kwargs):
     ui.initialize(server)
 
     # Start server
-    server.start(**kwargs)
+    return server.start(**kwargs)
 
 
 if __name__ == "__main__":
