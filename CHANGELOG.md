@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.1 (2022-11-11)
+### Fix
+* **widget:** Properly use trigger from trame ([`c3611be`](https://github.com/Kitware/paraview-visualizer/commit/c3611becd3e91086a5bb8a923e511d6ac0d79b17))
+
 ## v0.1.0 (2022-10-14)
 ### Feature
 * **main:** Return server.start ([`fd7503a`](https://github.com/Kitware/paraview-visualizer/commit/fd7503a67d937fff57b227a988da877057e297fa))
