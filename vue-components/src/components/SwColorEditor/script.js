@@ -151,11 +151,11 @@ export default {
       }
 
       if (name) {
-        this.trigger('pv_reaction_representation_color_by', [
+        this.trame.trigger('pv_reaction_representation_color_by', [
           [name, association, component],
         ]);
       } else {
-        this.trigger('pv_reaction_representation_color_by');
+        this.trame.trigger('pv_reaction_representation_color_by');
       }
     },
   },
@@ -169,6 +169,5 @@ export default {
     'getSimput',
     'uiTS',
     'simputChannel',
-    'trigger',
   ],
 };

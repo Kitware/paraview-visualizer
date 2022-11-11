@@ -84,7 +84,7 @@ export default {
   methods: {
     validate() {
       this.dirty(this.name);
-      this.trigger('pv_reaction_representation_type', [this.model]);
+      this.trame.trigger('pv_reaction_representation_type', [this.model]);
     },
   },
   inject: [
@@ -94,6 +94,6 @@ export default {
     'dirty',
     'uiTS',
     'simputChannel',
-    'trigger',
+    'trame',
   ],
 };
