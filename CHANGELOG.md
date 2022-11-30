@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.2 (2022-11-30)
+### Fix
+* _write_definitions Permission denied ([`80a8579`](https://github.com/Kitware/paraview-visualizer/commit/80a85797cd7e617c54d37de5afc693e19a659bb4))
+
 ## v0.1.1 (2022-11-11)
 ### Fix
 * **widget:** Properly use trigger from trame ([`c3611be`](https://github.com/Kitware/paraview-visualizer/commit/c3611becd3e91086a5bb8a923e511d6ac0d79b17))
