@@ -359,9 +359,13 @@ class ParaviewProxyManager:
             Path(self._write_definitions_base)
             / f"{'/'.join(proxy_type.split('__'))}.{extension}"
         )
-        os.makedirs(file_name.parent, exist_ok=True)
-        with open(file_name, "w") as file:
-            file.write(content)
+
+        try:
+            os.makedirs(file_name.parent, exist_ok=True)
+            with open(file_name, "w") as file:
+                file.write(content)
+        except PermissionError:  # Write-protection
+            pass
 
     def _proxy_ensure_definition(self, proxy):
         proxy_type = definitions.proxy_type(proxy)
