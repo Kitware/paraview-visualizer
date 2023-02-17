@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.3 (2023-02-17)
+### Fix
+* **file_path:** Changed _update_path() parameters and parsing dict inside the function ([#9](https://github.com/Kitware/paraview-visualizer/issues/9)) ([`d540974`](https://github.com/Kitware/paraview-visualizer/commit/d5409740883ca7a4cc5460a348690080887f18a9))
+
 ## v0.1.2 (2022-11-30)
 ### Fix
 * _write_definitions Permission denied ([`80a8579`](https://github.com/Kitware/paraview-visualizer/commit/80a85797cd7e617c54d37de5afc693e19a659bb4))
