@@ -173,7 +173,7 @@ class AbstractFileBrowser(ListBrowser):
         super().__init__(
             list=(self._key_listing, []),
             path=(self._key_path, []),
-            click=(self._update_path, "[]", "$event"),
+            click=(self._update_path, "[$event]"),
             **kwargs,
         )
         # "path_icon",
@@ -228,7 +228,9 @@ class AbstractFileBrowser(ListBrowser):
 
         self.server.state[self._key_listing] = listing
 
-    def _update_path(self, type, value):
+    def _update_path(self, fileinfo):
+        type = fileinfo["type"]
+        value = fileinfo["value"]
         if type == "Directory":
             current_path = self.server.state[self._key_path]
             new_path = []
