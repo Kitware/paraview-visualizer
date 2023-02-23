@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.4 (2023-02-23)
+### Fix
+* **version:** Add __version__ ([`9edfd9f`](https://github.com/Kitware/paraview-visualizer/commit/9edfd9fa9a49326d56ba2be50be3d8577a7db837))
+
 ## v0.1.3 (2023-02-17)
 ### Fix
 * **file_path:** Changed _update_path() parameters and parsing dict inside the function ([#9](https://github.com/Kitware/paraview-visualizer/issues/9)) ([`d540974`](https://github.com/Kitware/paraview-visualizer/commit/d5409740883ca7a4cc5460a348690080887f18a9))
