@@ -1,0 +1,18 @@
+trame:
+  www_modules:
+    - pv_visualizer.html.module
+  cmd:
+    - /opt/paraview/bin/pvpython
+    - -m
+    - paraview.apps.trame
+    - --trame-app
+    - pv_visualizer
+    - --data
+    - /data
+    - --host
+    - ${host}
+    - --port
+    - ${port}
+    - --authKey
+    - ${secret}
+    - --server
