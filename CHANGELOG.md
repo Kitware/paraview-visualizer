@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.5 (2023-07-21)
+
+### Fix
+
+* **trame:** Use v3 ([`4a37615`](https://github.com/Kitware/paraview-visualizer/commit/4a3761535415aa9901233158dd1a650d10a6a352))
+
 ## v0.1.4 (2023-02-23)
 ### Fix
 * **version:** Add __version__ ([`9edfd9f`](https://github.com/Kitware/paraview-visualizer/commit/9edfd9fa9a49326d56ba2be50be3d8577a7db837))
