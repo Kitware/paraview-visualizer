@@ -6,7 +6,7 @@ trame:
     - -m
     - paraview.apps.trame
     - --trame-app
-    - pv_visualizer
+    - pv_visualizer.app
     - --data
     - /data
     - --host

@@ -1,5 +1,5 @@
 from pathlib import Path
-from trame.app import get_server, dev
+from trame.app import get_server
 
 SERVER = None
 
@@ -24,14 +24,8 @@ def main(server=None, data=None, plugins=None, **kwargs):
         args, _ = server.cli.parse_known_args()
         plugins = args.plugins.split(",") if args.plugins else []
 
-    # Make UI auto reload
-    def _reload():
-        dev.reload(ui)
-        ui.initialize(SERVER)
-
-    server.controller.on_server_reload.add(_reload)
-
     # Init application
+    server.client_type = "vue2"
     SERVER = server
 
     engine.initialize(server, plugins)
