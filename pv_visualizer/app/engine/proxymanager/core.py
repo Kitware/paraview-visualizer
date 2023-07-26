@@ -155,7 +155,7 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
         logger.info(
             "Deleting PV proxy: %s -> %s",
             simput_proxy.id,
-            pv_proxy.GetGlobalIDAsString()
+            pv_proxy.GetGlobalIDAsString(),
         )
         simple.Delete(pv_proxy)
 
