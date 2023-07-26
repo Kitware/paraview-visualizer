@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.6 (2023-07-26)
+
+### Fix
+
+* **logging:** Wrong number of arguments ([#14](https://github.com/Kitware/paraview-visualizer/issues/14)) ([`7fba5de`](https://github.com/Kitware/paraview-visualizer/commit/7fba5de83cecd345f8c8eec0a5d1ae75e8a394e4))
+
 ## v0.1.5 (2023-07-21)
 
 ### Fix
