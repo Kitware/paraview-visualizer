@@ -153,13 +153,11 @@ class ParaViewProxyObjectAdapter(ProxyObjectAdapter):
     def before_delete(simput_proxy):
         pv_proxy = simput_proxy.object
         logger.info(
-            "Deleting PV proxy",
+            "Deleting PV proxy: %s -> %s",
             simput_proxy.id,
-            pv_proxy.GetGlobalIDAsString(),
-            pv_proxy.GetReferenceCount(),
+            pv_proxy.GetGlobalIDAsString()
         )
         simple.Delete(pv_proxy)
-        logger.info("simple.Delete() => done", pv_proxy.GetReferenceCount())
 
 
 # -----------------------------------------------------------------------------
